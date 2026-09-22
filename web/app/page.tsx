@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { formatPrice, mediaUrl, money, type RateItem } from "@/lib/format";
-import SiteNav from "@/components/site-nav";
 
 type Media = { id: string; kind: "photo" | "video"; storage_path: string; sort_order: number };
 
@@ -58,13 +57,17 @@ export default async function BrowsePage({
   return (
     <main className="min-h-screen bg-[#F4F1EA] px-5 py-8 text-[#1C1B19]">
       <div className="mx-auto flex max-w-md flex-col gap-5">
-        <SiteNav />
-
-        <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-3">
           <h1 className="text-3xl font-extrabold tracking-tight">Find someone for the job</h1>
           <p className="text-[15px] text-[#4A4740]">
             See what pros charge and what their finished work looks like before you message them.
           </p>
+          <Link
+            href="/jobs/new"
+            className="w-fit rounded-xl bg-[#B43C0A] px-4 py-2.5 text-sm font-semibold text-white no-underline"
+          >
+            Post a job instead
+          </Link>
         </div>
 
         {/* Category filter */}
