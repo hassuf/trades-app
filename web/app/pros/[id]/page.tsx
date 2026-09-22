@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
-import { formatPrice, tierLabel, type RateItem } from "@/lib/format";
+import { formatPrice, monthLabel, tierLabel, type RateItem } from "@/lib/format";
+import MediaCover, { mediaSummary, type PortfolioJob } from "@/components/media-cover";
 
 // Public profile page for a pro: /pros/<their id>
 export default async function ProProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -27,6 +28,14 @@ export default async function ProProfilePage({ params }: { params: Promise<{ id:
     .order("sort_order")
     .order("created_at");
   const rateItems: RateItem[] = rates ?? [];
+
+  const { data: jobsData } = await supabase
+    .from("portfolio_items")
+    .select("id, title, neighborhood, completed_on, portfolio_media(id, kind, storage_path, sort_order)")
+    .eq("pro_id", id)
+    .order("completed_on", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false });
+  const jobs: PortfolioJob[] = jobsData ?? [];
 
   const name: string = pro.business_name || pro.profiles?.full_name || "Unnamed pro";
   const trades: string[] = (pro.pro_categories ?? [])
@@ -97,14 +106,34 @@ export default async function ProProfilePage({ params }: { params: Promise<{ id:
           )}
         </section>
 
-        <section className="flex flex-col gap-3 rounded-2xl border border-[#E2DCCF] bg-white p-5">
+        <section className="flex flex-col gap-4">
           <h2 className="text-lg font-bold">Past jobs</h2>
-          <p className="text-sm text-[#5C584F]">No past jobs posted yet.</p>
+          {jobs.length === 0 ? (
+            <p className="rounded-2xl border border-[#E2DCCF] bg-white p-5 text-sm text-[#5C584F]">
+              No past jobs posted yet.
+            </p>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              {jobs.map((job) => (
+                <div key={job.id} className="flex flex-col gap-1.5">
+                  <MediaCover job={job} />
+                  <span className="text-sm font-semibold">{job.title}</span>
+                  <span className="text-xs text-[#5C584F]">
+                    {[job.neighborhood, monthLabel(job.completed_on)].filter(Boolean).join(", ")}
+                  </span>
+                  <span className="text-xs text-[#5C584F]">{mediaSummary(job)}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
-        <div className="flex gap-5">
+        <div className="flex flex-wrap gap-x-5 gap-y-2">
           <Link href="/pro/rates" className="text-sm font-semibold text-[#B43C0A] underline">
             Edit rate card
+          </Link>
+          <Link href="/pro/jobs" className="text-sm font-semibold text-[#B43C0A] underline">
+            Edit past jobs
           </Link>
           <Link href="/pro/setup" className="text-sm font-semibold text-[#B43C0A] underline">
             Edit business details
