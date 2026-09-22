@@ -40,3 +40,20 @@ export function monthLabel(date: string | null) {
   const [y, m] = date.split("-").map(Number);
   return new Date(y, m - 1).toLocaleString("en-US", { month: "short", year: "numeric" });
 }
+
+// Web address for a photo or video attached to a job post.
+export function jobMediaUrl(path: string) {
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/jobs/${path}`;
+}
+
+export const timingLabel: Record<string, string> = {
+  this_week: "This week",
+  next_2_weeks: "Next 2 weeks",
+  flexible: "Flexible",
+};
+
+export const sizeHint: Record<string, string> = {
+  small: "Under a few hours",
+  medium: "A day or two",
+  large: "Multi-day project",
+};
