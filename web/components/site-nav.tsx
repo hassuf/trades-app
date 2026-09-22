@@ -33,10 +33,15 @@ export default function SiteNav() {
             My jobs
           </Link>
         )}
-        {userId && isPro && (
-          <Link href={`/pros/${userId}`} className={link}>
-            My profile
-          </Link>
+                {userId && isPro && (
+          <>
+            <Link href="/pro/jobs-available" className={link}>
+              Find work
+            </Link>
+            <Link href={`/pros/${userId}`} className={link}>
+              My profile
+            </Link>
+          </>
         )}
         {!userId && (
           <>

@@ -40,7 +40,7 @@ export default function MyJobsPage() {
       )
       .eq("homeowner_id", auth.user.id)
       .order("created_at", { ascending: false });
-    setJobs((data as Job[]) ?? []);
+        setJobs((data as unknown as Job[]) ?? []);
   }
 
   useEffect(() => {
@@ -118,10 +118,10 @@ export default function MyJobsPage() {
                 <p className="line-clamp-4 text-sm leading-relaxed">{job.description}</p>
               </div>
 
-              <div className="flex items-center justify-between gap-3 border-t border-[#EDE8DD] pt-3">
-                <span className="text-sm font-semibold">
-                  {count === 0 ? "No quotes yet" : `${count} quote${count > 1 ? "s" : ""}`}
-                </span>
+                            <div className="flex items-center justify-between gap-3 border-t border-[#EDE8DD] pt-3">
+                <Link href={`/jobs/${job.id}`} className="text-sm font-semibold text-[#B43C0A] underline">
+                  {count === 0 ? "No quotes yet" : `See ${count} quote${count > 1 ? "s" : ""}`}
+                </Link>
                 <span className="text-xs text-[#5C584F]">{budget(job)}</span>
               </div>
 
