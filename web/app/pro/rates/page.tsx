@@ -48,7 +48,7 @@ export default function RatesPage() {
     async function load() {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) {
-        router.push("/signup");
+        router.push("/login");
         return;
       }
       setUserId(auth.user.id);

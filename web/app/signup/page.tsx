@@ -103,6 +103,12 @@ export default function SignupPage() {
             {loading ? "Creating account…" : "Create account"}
           </button>
         </form>
+                <p className="text-sm text-[#4A4740]">
+          Already have an account?{" "}
+          <a href="/login" className="font-semibold text-[#B43C0A] underline">
+            Log in
+          </a>
+        </p>
       </div>
     </main>
   );
