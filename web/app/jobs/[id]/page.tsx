@@ -68,7 +68,7 @@ export default function JobQuotesPage() {
           .from("pros")
           .select(
             `id, business_name, service_zip, years_experience, license_verified, license_state, insured,
-             profiles(full_name),
+                          profiles!pros_id_fkey(full_name),
              rate_items(id, title, description, unit, size_tier, price_min_cents, price_max_cents),
              portfolio_items(id, portfolio_media(id, kind, storage_path, sort_order))`
           )

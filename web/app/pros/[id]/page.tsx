@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { formatPrice, mediaUrl, monthLabel, tierLabel, type RateItem } from "@/lib/format";
-import MessageButton from "@/components/message-button";
+import BookingSheet from "@/components/booking-sheet";
 import OwnerLinks from "@/components/owner-links";
 
 type Media = { id: string; kind: "photo" | "video"; storage_path: string; sort_order: number };
@@ -17,7 +17,7 @@ export default async function ProProfilePage({ params }: { params: Promise<{ id:
 
   const { data: pro } = await supabase
     .from("pros")
-    .select("*, profiles(full_name), pro_categories(categories(name))")
+        .select("*, profiles!pros_id_fkey(full_name), pro_categories(categories(name))")
     .eq("id", id)
     .maybeSingle();
 
@@ -247,13 +247,7 @@ export default async function ProProfilePage({ params }: { params: Promise<{ id:
         </div>
       </div>
 
-      {/* Sticky action bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-10 border-t border-[var(--line)] bg-[var(--card)] sm:bottom-0">
-        <div className="mx-auto flex max-w-md gap-2.5 px-5 pb-[18px] pt-3">
-          <MessageButton proId={id} label="Message" variant="outline" />
-          <MessageButton proId={id} label="Request booking" variant="solid" grow />
-        </div>
-      </div>
+          <BookingSheet proId={id} proName={name} />
     </main>
   );
 }

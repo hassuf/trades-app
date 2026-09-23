@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { formatPrice, mediaUrl, type RateItem } from "@/lib/format";
+import SaveButton from "@/components/save-button";
 
 type Media = { id: string; kind: "photo" | "video"; storage_path: string; sort_order: number };
 
@@ -25,17 +26,18 @@ export default async function BrowsePage({
 
   const { data: categories } = await supabase.from("categories").select("id, slug, name").order("id");
 
-  const { data: prosData } = await supabase
+    const { data: prosData, error: prosError } = await supabase
     .from("pros")
     .select(
       `id, business_name, bio, service_zip, service_radius_miles, years_experience,
        license_verified, license_state, insured,
-       profiles(full_name),
+              profiles!pros_id_fkey(full_name),
        pro_categories(categories(slug, name)),
        rate_items(id, title, description, unit, size_tier, price_min_cents, price_max_cents),
        portfolio_items(id, title, neighborhood, portfolio_media(id, kind, storage_path, sort_order))`
     );
 
+      console.log("PROS QUERY", { count: prosData?.length, error: prosError });
   let pros = (prosData as any[]) ?? [];
 
   if (category) {
@@ -202,6 +204,7 @@ export default async function BrowsePage({
                       No photos yet
                     </div>
                   )}
+                                    <SaveButton proId={pro.id} />
                   {cover?.job && (
                     <span className="absolute left-2.5 top-2.5 rounded-md bg-[var(--card)] px-2 py-1 text-[11px] font-semibold">
                       {[cover.job.title, cover.job.neighborhood].filter(Boolean).join(", ")}

@@ -232,3 +232,22 @@ body {
 }
 
 .link { font-size: 0.875rem; font-weight: 600; color: var(--rust); text-decoration: underline; }
+
+/* ---------- page transitions ---------- */
+@view-transition { navigation: auto; }
+
+@keyframes slide-from-right { from { transform: translateX(100%); } }
+@keyframes slide-out-left {
+  to { transform: translateX(-14%); opacity: 0.35; }
+}
+
+::view-transition-old(root) {
+  animation: 320ms cubic-bezier(0.3, 0.8, 0.25, 1) both slide-out-left;
+}
+::view-transition-new(root) {
+  animation: 380ms cubic-bezier(0.3, 0.8, 0.25, 1) both slide-from-right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+}
