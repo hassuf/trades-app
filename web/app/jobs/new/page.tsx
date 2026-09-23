@@ -43,7 +43,6 @@ export default function NewJobPage() {
       const { data: cats } = await supabase.from("categories").select("id, name").order("id");
       setCategories(cats ?? []);
 
-      // Prefill their ZIP if we already know it.
       const { data: profile } = await supabase.from("profiles").select("zip").eq("id", auth.user.id).maybeSingle();
       if (profile?.zip) setZip(profile.zip);
     }
@@ -103,7 +102,6 @@ export default function NewJobPage() {
       return;
     }
 
-    // Save their ZIP for next time.
     await supabase.from("profiles").update({ zip }).eq("id", userId);
 
     for (let i = 0; i < files.length; i++) {
@@ -118,7 +116,7 @@ export default function NewJobPage() {
       });
       if (uploadError) {
         setStatus(null);
-        setError(`"${file.name}" didn't upload: ${uploadError.message}. Your job was posted; add photos by editing it.`);
+        setError(`"${file.name}" didn't upload: ${uploadError.message}. Your job was posted.`);
         return;
       }
       await supabase.from("job_post_media").insert({
@@ -132,24 +130,22 @@ export default function NewJobPage() {
     router.push("/jobs");
   }
 
-  const input =
-    "h-12 w-full rounded-xl border border-[#D9D3C6] bg-white px-3 text-[15px] font-normal text-[#1C1B19] outline-none focus:border-[#B43C0A] focus:ring-2 focus:ring-[#B43C0A]/20";
   const busy = status !== null;
 
   return (
-    <main className="min-h-screen bg-[#F4F1EA] px-5 py-10 text-[#1C1B19]">
-      <form onSubmit={handleSubmit} className="mx-auto flex max-w-md flex-col gap-6">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-extrabold tracking-tight">Post a job</h1>
-          <p className="text-[15px] text-[#4A4740]">
-            Describe what you need. Pros nearby who do this work send you quotes, and you compare them
-            alongside their prices and past jobs.
-          </p>
-        </div>
+    <main className="page">
+      <div className="flex flex-col gap-2">
+        <h1 className="h1">Post a job</h1>
+        <p className="lede">
+          Describe what you need. Pros nearby who do this work send you quotes, and you compare them alongside
+          their prices and past jobs.
+        </p>
+      </div>
 
-        <label className="flex flex-col gap-2 text-sm font-semibold">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        <label className="field">
           What kind of work?
-          <select className={input} value={categoryId} onChange={(e) => setCategoryId(e.target.value)} required>
+          <select className="input" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} required>
             <option value="">Choose one</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
@@ -159,15 +155,15 @@ export default function NewJobPage() {
           </select>
         </label>
 
-        <label className="flex flex-col gap-2 text-sm font-semibold">
+        <label className="field">
           Describe the job
           <textarea
+            className="area"
             rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
             placeholder="e.g. Add one outlet on the bedroom wall next to the bed. Nearest outlet is about 6 ft away on the same wall."
-            className="w-full resize-none rounded-xl border border-[#D9D3C6] bg-white p-3 text-[15px] font-normal outline-none focus:border-[#B43C0A] focus:ring-2 focus:ring-[#B43C0A]/20"
           />
         </label>
 
@@ -176,7 +172,7 @@ export default function NewJobPage() {
             <label htmlFor="media" className="text-sm font-semibold">
               Photos or a quick video
             </label>
-            <span className="text-xs text-[#5C584F]">
+            <span className="hint">
               {files.length} of {MAX_FILES}
             </span>
           </div>
@@ -186,7 +182,7 @@ export default function NewJobPage() {
               {files.map((f, i) => (
                 <div key={i} className="relative">
                   {f.type.startsWith("video/") ? (
-                    <div className="flex aspect-square w-full items-center justify-center rounded-lg bg-[#2A2824] text-[11px] text-white">
+                    <div className="flex aspect-square w-full items-center justify-center rounded-lg bg-[var(--dark)] text-[11px] text-white">
                       Video
                     </div>
                   ) : (
@@ -196,7 +192,7 @@ export default function NewJobPage() {
                     type="button"
                     aria-label="Remove this file"
                     onClick={() => setFiles((prev) => prev.filter((_, n) => n !== i))}
-                    className="absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-sm font-bold shadow"
+                    className="press absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-sm font-bold shadow"
                   >
                     ×
                   </button>
@@ -213,10 +209,10 @@ export default function NewJobPage() {
               accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm"
               multiple
               onChange={handleFiles}
-              className="text-sm file:mr-3 file:h-10 file:rounded-full file:border file:border-[#1C1B19] file:bg-white file:px-4 file:text-sm file:font-semibold"
+              className="text-sm file:mr-3 file:h-10 file:rounded-full file:border file:border-[var(--ink)] file:bg-[var(--card)] file:px-4 file:text-sm file:font-semibold"
             />
           )}
-          <span className="text-xs text-[#5C584F]">Pros quote more accurately when they can see the space.</span>
+          <span className="hint">Pros quote more accurately when they can see the space.</span>
         </div>
 
         <fieldset className="flex flex-col gap-2">
@@ -229,17 +225,17 @@ export default function NewJobPage() {
                 role="radio"
                 aria-checked={size === s}
                 onClick={() => setSize(s)}
-                className={`flex min-h-[60px] items-center justify-between gap-3 rounded-xl bg-white px-4 py-2 text-left ${
-                  size === s ? "border-2 border-[#B43C0A]" : "border border-[#D9D3C6]"
+                className={`press flex min-h-[60px] items-center justify-between gap-3 rounded-xl bg-[var(--card)] px-4 py-2 text-left ${
+                  size === s ? "border-2 border-[var(--rust)]" : "border border-[#ddd4c2]"
                 }`}
               >
                 <span className="flex flex-col gap-0.5">
                   <span className="text-[15px] font-semibold capitalize">{s}</span>
-                  <span className="text-xs text-[#5C584F]">{sizeHint[s]}</span>
+                  <span className="hint">{sizeHint[s]}</span>
                 </span>
                 <span
                   className={`h-5 w-5 shrink-0 rounded-full ${
-                    size === s ? "border-[6px] border-[#B43C0A]" : "border-2 border-[#9C958A]"
+                    size === s ? "border-[6px] border-[var(--rust)]" : "border-2 border-[#9c958a]"
                   }`}
                 />
               </button>
@@ -248,44 +244,38 @@ export default function NewJobPage() {
         </fieldset>
 
         <div className="grid grid-cols-2 gap-3">
-          <label className="flex flex-col gap-2 text-sm font-semibold">
+          <label className="field">
             Budget from ($)
-            <input className={input} type="number" min={0} value={budgetMin} onChange={(e) => setBudgetMin(e.target.value)} placeholder="Optional" />
+            <input className="input" type="number" min={0} value={budgetMin} onChange={(e) => setBudgetMin(e.target.value)} placeholder="Optional" />
           </label>
-          <label className="flex flex-col gap-2 text-sm font-semibold">
+          <label className="field">
             Up to ($)
-            <input className={input} type="number" min={0} value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)} placeholder="Optional" />
+            <input className="input" type="number" min={0} value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)} placeholder="Optional" />
           </label>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <label className="flex flex-col gap-2 text-sm font-semibold">
+          <label className="field">
             When?
-            <select className={input} value={timing} onChange={(e) => setTiming(e.target.value)}>
+            <select className="input" value={timing} onChange={(e) => setTiming(e.target.value)}>
               <option value="this_week">This week</option>
               <option value="next_2_weeks">Next 2 weeks</option>
               <option value="flexible">Flexible</option>
             </select>
           </label>
-          <label className="flex flex-col gap-2 text-sm font-semibold">
+          <label className="field">
             ZIP code
-            <input className={input} inputMode="numeric" value={zip} onChange={(e) => setZip(e.target.value)} required />
+            <input className="input" inputMode="numeric" value={zip} onChange={(e) => setZip(e.target.value)} required />
           </label>
         </div>
-        <span className="-mt-3 text-xs text-[#5C584F]">
-          Your exact address is only shared with the pro you book.
-        </span>
+        <span className="hint -mt-4">Your exact address is only shared with the pro you book.</span>
 
-        {error && <p className="rounded-lg bg-[#FBE9E2] px-3 py-2 text-sm text-[#8A2E08]">{error}</p>}
+        {error && <p className="error">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={busy || !userId}
-          className="h-12 rounded-xl bg-[#B43C0A] text-base font-semibold text-white disabled:opacity-60"
-        >
+        <button type="submit" disabled={busy || !userId} className="btn btn-primary">
           {status ?? "Post job and get quotes"}
         </button>
-        <span className="-mt-3 text-center text-xs text-[#5C584F]">Free to post. You pay only when you book.</span>
+        <span className="hint -mt-4 text-center">Free to post. You pay only when you book.</span>
       </form>
     </main>
   );

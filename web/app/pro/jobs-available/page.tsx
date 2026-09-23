@@ -58,7 +58,6 @@ export default function AvailableJobsPage() {
       return;
     }
 
-    // Which trades this pro does.
     const { data: mine } = await supabase.from("pro_categories").select("category_id").eq("pro_id", auth.user.id);
     const categoryIds = (mine ?? []).map((m) => m.category_id);
 
@@ -76,9 +75,8 @@ export default function AvailableJobsPage() {
       .eq("status", "open")
       .in("category_id", categoryIds)
       .order("created_at", { ascending: false });
-        setJobs((openJobs as unknown as Job[]) ?? []);
+    setJobs((openJobs as unknown as Job[]) ?? []);
 
-    // Quotes this pro already sent.
     const { data: quotes } = await supabase
       .from("quotes")
       .select("id, job_post_id, price_min_cents, price_max_cents, message, status")
@@ -158,138 +156,124 @@ export default function AvailableJobsPage() {
     return money(q.price_min_cents);
   }
 
-  const input =
-    "h-12 w-full rounded-xl border border-[#D9D3C6] bg-white px-3 text-[15px] font-normal text-[#1C1B19] outline-none focus:border-[#B43C0A] focus:ring-2 focus:ring-[#B43C0A]/20";
-
   return (
-    <main className="min-h-screen bg-[#F4F1EA] px-5 py-10 text-[#1C1B19]">
-      <div className="mx-auto flex max-w-md flex-col gap-6">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-extrabold tracking-tight">Jobs looking for a pro</h1>
-          <p className="text-[15px] text-[#4A4740]">
-            Open jobs in the trades you listed. Send a price range and the homeowner compares it with your
-            rate card and past work.
-          </p>
-        </div>
+    <main className="page">
+      <div className="flex flex-col gap-2">
+        <h1 className="h1">Jobs looking for a pro</h1>
+        <p className="lede">
+          Open jobs in the trades you listed. Send a price range and the homeowner compares it with your rate
+          card and past work.
+        </p>
+      </div>
 
-        {jobs === null && <p className="text-sm text-[#5C584F]">Loading…</p>}
+      {jobs === null && <p className="text-sm text-[var(--ink-faint)]">Loading…</p>}
 
-        {jobs?.length === 0 && (
-          <p className="rounded-2xl border border-[#E2DCCF] bg-white p-5 text-sm text-[#5C584F]">
-            Nothing open right now in your trades. Check back, or make sure your trades are up to date in{" "}
-            <Link href="/pro/setup" className="font-semibold text-[#B43C0A] underline">
-              business details
-            </Link>
-            .
-          </p>
-        )}
+      {jobs?.length === 0 && (
+        <p className="panel p-5 text-sm text-[var(--ink-faint)]">
+          Nothing open right now in your trades. Check back, or make sure your trades are up to date in{" "}
+          <Link href="/pro/setup" className="link">
+            business details
+          </Link>
+          .
+        </p>
+      )}
 
-        {jobs?.map((job) => {
-          const mine = myQuotes[job.id];
-          const photos = job.job_post_media ?? [];
-          return (
-            <article key={job.id} className="flex flex-col gap-3 rounded-2xl border border-[#E2DCCF] bg-white p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[17px] font-bold">{job.categories?.name ?? "Job"}</span>
-                  <span className="text-xs text-[#5C584F]">
-                    {job.size_tier} · {timingLabel[job.timing]} · {job.zip}
-                  </span>
-                </div>
-                {mine && (
-                  <span className="shrink-0 rounded-full bg-[#E4EFE6] px-2.5 py-1 text-[11px] font-semibold text-[#2F6B3A]">
-                    Quoted {quoteRange(mine)}
-                  </span>
+      {jobs?.map((job, i) => {
+        const mine = myQuotes[job.id];
+        const photos = job.job_post_media ?? [];
+        return (
+          <article
+            key={job.id}
+            className="rise flex flex-col gap-3 rounded-2xl border border-[var(--line)] bg-[var(--card)] p-4"
+            style={{ animationDelay: `${0.05 * i}s` }}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-col gap-0.5">
+                <span className="font-display text-[17px] font-extrabold">{job.categories?.name ?? "Job"}</span>
+                <span className="hint capitalize">
+                  {job.size_tier} · {timingLabel[job.timing]} · {job.zip}
+                </span>
+              </div>
+              {mine && (
+                <span className="shrink-0 rounded-full bg-[#e4efe6] px-2.5 py-1 text-[11px] font-semibold text-[var(--forest)]">
+                  Quoted {quoteRange(mine)}
+                </span>
+              )}
+            </div>
+
+            <p className="text-sm leading-relaxed">{job.description}</p>
+
+            {photos.length > 0 && (
+              <div className="grid grid-cols-3 gap-2">
+                {photos.map((m) =>
+                  m.kind === "video" ? (
+                    <video
+                      key={m.id}
+                      src={jobMediaUrl(m.storage_path)}
+                      className="aspect-square w-full rounded-lg bg-[var(--dark)] object-cover"
+                      muted
+                      playsInline
+                      controls
+                      preload="metadata"
+                    />
+                  ) : (
+                    <img key={m.id} src={jobMediaUrl(m.storage_path)} alt="" className="aspect-square w-full rounded-lg object-cover" />
+                  )
                 )}
               </div>
+            )}
 
-              <p className="text-sm leading-relaxed">{job.description}</p>
+            <span className="hint">{budget(job)}</span>
 
-              {photos.length > 0 && (
-                <div className="grid grid-cols-3 gap-2">
-                  {photos.map((m) =>
-                    m.kind === "video" ? (
-                      <video
-                        key={m.id}
-                        src={jobMediaUrl(m.storage_path)}
-                        className="aspect-square w-full rounded-lg bg-[#2A2824] object-cover"
-                        muted
-                        playsInline
-                        controls
-                        preload="metadata"
-                      />
-                    ) : (
-                      <img key={m.id} src={jobMediaUrl(m.storage_path)} alt="" className="aspect-square w-full rounded-lg object-cover" />
-                    )
-                  )}
-                </div>
-              )}
-
-              <span className="text-xs text-[#5C584F]">{budget(job)}</span>
-
-              {openForm === job.id ? (
-                <div className="flex flex-col gap-3 border-t border-[#EDE8DD] pt-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <label className="flex flex-col gap-2 text-sm font-semibold">
-                      Your price from ($)
-                      <input className={input} type="number" min={0} value={priceMin} onChange={(e) => setPriceMin(e.target.value)} required />
-                    </label>
-                    <label className="flex flex-col gap-2 text-sm font-semibold">
-                      Up to ($)
-                      <input className={input} type="number" min={0} value={priceMax} onChange={(e) => setPriceMax(e.target.value)} placeholder="Optional" />
-                    </label>
-                  </div>
-                  <label className="flex flex-col gap-2 text-sm font-semibold">
-                    Message
-                    <textarea
-                      rows={3}
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      placeholder="What's included, what you'd need to check on site, when you could start."
-                      className="w-full resize-none rounded-xl border border-[#D9D3C6] bg-white p-3 text-[15px] font-normal outline-none focus:border-[#B43C0A] focus:ring-2 focus:ring-[#B43C0A]/20"
-                    />
+            {openForm === job.id ? (
+              <div className="flex flex-col gap-3 border-t border-[var(--line-soft)] pt-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="field">
+                    Your price from ($)
+                    <input className="input" type="number" min={0} value={priceMin} onChange={(e) => setPriceMin(e.target.value)} required />
                   </label>
-
-                  {error && <p className="rounded-lg bg-[#FBE9E2] px-3 py-2 text-sm text-[#8A2E08]">{error}</p>}
-
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => sendQuote(job)}
-                      disabled={sending}
-                      className="h-11 flex-1 rounded-xl bg-[#B43C0A] text-sm font-semibold text-white disabled:opacity-60"
-                    >
-                      {sending ? "Sending…" : mine ? "Update quote" : "Send quote"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setOpenForm(null)}
-                      className="h-11 rounded-xl border border-[#D9D3C6] px-4 text-sm font-medium"
-                    >
-                      Cancel
-                    </button>
-                  </div>
+                  <label className="field">
+                    Up to ($)
+                    <input className="input" type="number" min={0} value={priceMax} onChange={(e) => setPriceMax(e.target.value)} placeholder="Optional" />
+                  </label>
                 </div>
-              ) : (
-                <div className="flex flex-wrap items-center gap-4 border-t border-[#EDE8DD] pt-3">
-                  <button
-                    type="button"
-                    onClick={() => startQuote(job)}
-                    className="rounded-xl bg-[#B43C0A] px-4 py-2.5 text-sm font-semibold text-white"
-                  >
-                    {mine ? "Edit quote" : "Send a quote"}
+                <label className="field">
+                  Message
+                  <textarea
+                    className="area"
+                    rows={3}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="What's included, what you'd need to check on site, when you could start."
+                  />
+                </label>
+
+                {error && <p className="error">{error}</p>}
+
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => sendQuote(job)} disabled={sending} className="btn btn-primary btn-sm flex-1">
+                    {sending ? "Sending…" : mine ? "Update quote" : "Send quote"}
                   </button>
-                  {mine && (
-                    <button type="button" onClick={() => withdrawQuote(job)} className="text-xs font-medium text-[#8A2E08] underline">
-                      Withdraw
-                    </button>
-                  )}
+                  <button type="button" onClick={() => setOpenForm(null)} className="btn btn-outline btn-sm">
+                    Cancel
+                  </button>
                 </div>
-              )}
-            </article>
-          );
-        })}
-      </div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center gap-4 border-t border-[var(--line-soft)] pt-3">
+                <button type="button" onClick={() => startQuote(job)} className="btn btn-primary btn-sm">
+                  {mine ? "Edit quote" : "Send a quote"}
+                </button>
+                {mine && (
+                  <button type="button" onClick={() => withdrawQuote(job)} className="text-xs font-medium text-[#8a2e08] underline">
+                    Withdraw
+                  </button>
+                )}
+              </div>
+            )}
+          </article>
+        );
+      })}
     </main>
   );
 }

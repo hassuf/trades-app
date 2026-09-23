@@ -18,9 +18,11 @@ type Row = {
 type Item = {
   id: string;
   otherName: string;
+  initials: string;
   subject: string;
   preview: string;
   when: string | null;
+  sortKey: string;
 };
 
 export default function InboxPage() {
@@ -48,7 +50,6 @@ export default function InboxPage() {
 
       const rows = (data as unknown as Row[]) ?? [];
 
-      // Look up the names of everyone on the other side.
       const otherIds = rows.map((r) => (r.homeowner_id === me ? r.pro_id : r.homeowner_id));
       const names: Record<string, string> = {};
       if (otherIds.length) {
@@ -66,49 +67,63 @@ export default function InboxPage() {
         const otherId = r.homeowner_id === me ? r.pro_id : r.homeowner_id;
         const sorted = [...(r.messages ?? [])].sort((a, b) => a.created_at.localeCompare(b.created_at));
         const last = sorted[sorted.length - 1];
+        const otherName = names[otherId] ?? "Someone";
         return {
           id: r.id,
-          otherName: names[otherId] ?? "Someone",
+          otherName,
+          initials: otherName
+            .split(" ")
+            .slice(0, 2)
+            .map((w) => w[0])
+            .join("")
+            .toUpperCase(),
           subject: r.job_posts?.categories?.name ?? "Direct message",
           preview: last ? `${last.sender_id === me ? "You: " : ""}${last.body}` : "No messages yet",
-          when: last ? new Date(last.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : null,
+          when: last
+            ? new Date(last.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+            : null,
+          sortKey: last?.created_at ?? r.created_at,
         };
       });
 
-      // Most recently active first.
+      list.sort((a, b) => b.sortKey.localeCompare(a.sortKey));
       setItems(list);
     }
     load();
   }, []);
 
   return (
-    <main className="min-h-screen bg-[#F4F1EA] px-5 py-10 text-[#1C1B19]">
-      <div className="mx-auto flex max-w-md flex-col gap-5">
-        <h1 className="text-3xl font-extrabold tracking-tight">Messages</h1>
+    <main className="page">
+      <h1 className="h1">Messages</h1>
 
-        {items === null && <p className="text-sm text-[#5C584F]">Loading…</p>}
+      {items === null && <p className="text-sm text-[var(--ink-faint)]">Loading…</p>}
 
-        {items?.length === 0 && (
-          <p className="rounded-2xl border border-[#E2DCCF] bg-white p-5 text-sm text-[#5C584F]">
-            No messages yet. Message a pro from their profile, or reply to a quote on one of your jobs.
-          </p>
-        )}
+      {items?.length === 0 && (
+        <p className="panel p-5 text-sm text-[var(--ink-faint)]">
+          No messages yet. Message a pro from their profile, or reply to a quote on one of your jobs.
+        </p>
+      )}
 
-        {items?.map((c) => (
-          <Link
-            key={c.id}
-            href={`/messages/${c.id}`}
-            className="flex flex-col gap-1 rounded-2xl border border-[#E2DCCF] bg-white p-4 no-underline"
-          >
+      {items?.map((c, i) => (
+        <Link
+          key={c.id}
+          href={`/messages/${c.id}`}
+          className="card rise flex gap-3 rounded-2xl border border-[var(--line)] bg-[var(--card)] p-4 no-underline"
+          style={{ animationDelay: `${0.04 * i}s` }}
+        >
+          <div className="font-display flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[11px] bg-[var(--sand)] text-[15px] font-extrabold text-[#6b5a3e]">
+            {c.initials}
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <div className="flex items-baseline justify-between gap-3">
-              <span className="text-[16px] font-bold text-[#1C1B19]">{c.otherName}</span>
-              {c.when && <span className="shrink-0 text-xs text-[#5C584F]">{c.when}</span>}
+              <span className="text-base font-bold text-[var(--ink)]">{c.otherName}</span>
+              {c.when && <span className="hint shrink-0">{c.when}</span>}
             </div>
-            <span className="text-xs font-medium text-[#B43C0A]">{c.subject}</span>
-            <span className="line-clamp-2 text-sm text-[#4A4740]">{c.preview}</span>
-          </Link>
-        ))}
-      </div>
+            <span className="text-xs font-medium text-[var(--rust)]">{c.subject}</span>
+            <span className="line-clamp-2 text-sm text-[var(--ink-soft)]">{c.preview}</span>
+          </div>
+        </Link>
+      ))}
     </main>
   );
 }

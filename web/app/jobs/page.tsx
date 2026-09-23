@@ -40,7 +40,7 @@ export default function MyJobsPage() {
       )
       .eq("homeowner_id", auth.user.id)
       .order("created_at", { ascending: false });
-        setJobs((data as unknown as Job[]) ?? []);
+    setJobs((data as unknown as Job[]) ?? []);
   }
 
   useEffect(() => {
@@ -62,82 +62,73 @@ export default function MyJobsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F4F1EA] px-5 py-10 text-[#1C1B19]">
-      <div className="mx-auto flex max-w-md flex-col gap-6">
-        <div className="flex items-start justify-between gap-4">
-          <h1 className="text-3xl font-extrabold tracking-tight">Your jobs</h1>
-          <Link
-            href="/jobs/new"
-            className="mt-1 shrink-0 rounded-xl bg-[#B43C0A] px-4 py-2.5 text-sm font-semibold text-white no-underline"
+    <main className="page">
+      <div className="flex items-start justify-between gap-4">
+        <h1 className="h1">Your jobs</h1>
+        <Link href="/jobs/new" className="btn btn-primary btn-sm mt-1 flex shrink-0 items-center no-underline">
+          Post a job
+        </Link>
+      </div>
+
+      {jobs === null && <p className="text-sm text-[var(--ink-faint)]">Loading…</p>}
+
+      {jobs?.length === 0 && (
+        <p className="panel p-5 text-sm text-[var(--ink-faint)]">
+          You haven't posted anything yet. Post a job and pros nearby will send quotes, or{" "}
+          <Link href="/" className="link">
+            browse pros
+          </Link>{" "}
+          and message one directly.
+        </p>
+      )}
+
+      {jobs?.map((job, i) => {
+        const photo = job.job_post_media?.find((m) => m.kind === "photo");
+        const count = job.quotes?.length ?? 0;
+        return (
+          <article
+            key={job.id}
+            className="rise flex flex-col gap-3 rounded-2xl border border-[var(--line)] bg-[var(--card)] p-4"
+            style={{ animationDelay: `${0.05 * i}s` }}
           >
-            Post a job
-          </Link>
-        </div>
-
-        {jobs === null && <p className="text-sm text-[#5C584F]">Loading…</p>}
-
-        {jobs?.length === 0 && (
-          <p className="rounded-2xl border border-[#E2DCCF] bg-white p-5 text-sm text-[#5C584F]">
-            You haven't posted anything yet. Post a job and pros nearby will send quotes, or{" "}
-            <Link href="/" className="font-semibold text-[#B43C0A] underline">
-              browse pros
-            </Link>{" "}
-            and message one directly.
-          </p>
-        )}
-
-        {jobs?.map((job) => {
-          const photo = job.job_post_media?.find((m) => m.kind === "photo");
-          const count = job.quotes?.length ?? 0;
-          return (
-            <article key={job.id} className="flex flex-col gap-3 rounded-2xl border border-[#E2DCCF] bg-white p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[17px] font-bold">{job.categories?.name ?? "Job"}</span>
-                  <span className="text-xs text-[#5C584F]">
-                    {job.size_tier} · {timingLabel[job.timing]} · {job.zip}
-                  </span>
-                </div>
-                <span
-                  className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                    job.status === "open" ? "bg-[#E4EFE6] text-[#2F6B3A]" : "bg-[#E6E1D6] text-[#4A4740]"
-                  }`}
-                >
-                  {job.status}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-col gap-0.5">
+                <span className="font-display text-[17px] font-extrabold">{job.categories?.name ?? "Job"}</span>
+                <span className="hint capitalize">
+                  {job.size_tier} · {timingLabel[job.timing]} · {job.zip}
                 </span>
               </div>
+              <span
+                className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold capitalize ${
+                  job.status === "open" ? "bg-[#e4efe6] text-[var(--forest)]" : "bg-[var(--sand)] text-[var(--ink-soft)]"
+                }`}
+              >
+                {job.status}
+              </span>
+            </div>
 
-              <div className="flex gap-3">
-                {photo && (
-                  <img
-                    src={jobMediaUrl(photo.storage_path)}
-                    alt=""
-                    className="h-20 w-20 shrink-0 rounded-lg object-cover"
-                  />
-                )}
-                <p className="line-clamp-4 text-sm leading-relaxed">{job.description}</p>
-              </div>
-
-                            <div className="flex items-center justify-between gap-3 border-t border-[#EDE8DD] pt-3">
-                <Link href={`/jobs/${job.id}`} className="text-sm font-semibold text-[#B43C0A] underline">
-                  {count === 0 ? "No quotes yet" : `See ${count} quote${count > 1 ? "s" : ""}`}
-                </Link>
-                <span className="text-xs text-[#5C584F]">{budget(job)}</span>
-              </div>
-
-              {job.status === "open" && (
-                <button
-                  type="button"
-                  onClick={() => closeJob(job)}
-                  className="w-fit text-xs font-medium text-[#8A2E08] underline"
-                >
-                  Close this job
-                </button>
+            <div className="flex gap-3">
+              {photo && (
+                <img src={jobMediaUrl(photo.storage_path)} alt="" className="h-20 w-20 shrink-0 rounded-lg object-cover" />
               )}
-            </article>
-          );
-        })}
-      </div>
+              <p className="line-clamp-4 text-sm leading-relaxed">{job.description}</p>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 border-t border-[var(--line-soft)] pt-3">
+              <Link href={`/jobs/${job.id}`} className="link">
+                {count === 0 ? "No quotes yet" : `See ${count} quote${count > 1 ? "s" : ""}`}
+              </Link>
+              <span className="hint">{budget(job)}</span>
+            </div>
+
+            {job.status === "open" && (
+              <button type="button" onClick={() => closeJob(job)} className="w-fit text-xs font-medium text-[#8a2e08] underline">
+                Close this job
+              </button>
+            )}
+          </article>
+        );
+      })}
     </main>
   );
 }
