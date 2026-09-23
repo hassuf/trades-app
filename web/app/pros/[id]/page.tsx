@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { formatPrice, monthLabel, tierLabel, type RateItem } from "@/lib/format";
 import MediaCover, { mediaSummary, type PortfolioJob } from "@/components/media-cover";
 import OwnerLinks from "@/components/owner-links";
+import MessageButton from "@/components/message-button";
 
 // Public profile page for a pro: /pros/<their id>
 export default async function ProProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -129,6 +130,7 @@ export default async function ProProfilePage({ params }: { params: Promise<{ id:
           )}
         </section>
 
+        <MessageButton proId={id} label="Message this pro" />
                <OwnerLinks proId={id} />
       </div>
     </main>

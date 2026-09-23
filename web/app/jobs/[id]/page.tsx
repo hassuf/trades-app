@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice, jobMediaUrl, mediaUrl, money, timingLabel, type RateItem } from "@/lib/format";
+import MessageButton from "@/components/message-button";
 
 type Quote = {
   id: string;
@@ -214,9 +215,12 @@ export default function JobQuotesPage() {
                 </div>
               )}
 
-              <Link href={`/pros/${q.pro_id}`} className="text-sm font-semibold text-[#B43C0A] underline">
-                See full profile
-              </Link>
+                            <div className="flex items-center gap-4">
+                <MessageButton proId={q.pro_id} jobPostId={job.id} label="Message" />
+                <Link href={`/pros/${q.pro_id}`} className="text-sm font-semibold text-[#B43C0A] underline">
+                  See full profile
+                </Link>
+              </div>
             </article>
           );
         })}

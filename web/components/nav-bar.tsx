@@ -79,8 +79,9 @@ export default function NavBar() {
                 ) : null)}
             </div>
 
-            {ready && userId && (
+                       {ready && userId && (
               <>
+                <Link href="/messages" className={topLink}>Messages</Link>
                 {isPro && (
                   <Link href={`/pros/${userId}`} className={topLink}>
                     My profile
