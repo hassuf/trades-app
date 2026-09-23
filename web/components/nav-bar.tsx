@@ -36,33 +36,31 @@ export default function NavBar() {
     router.refresh();
   }
 
-  // Tabs shown in the bottom bar on phones.
   const tabs = isPro
     ? [
         { href: "/", label: "Browse" },
         { href: "/pro/jobs-available", label: "Find work" },
-        { href: userId ? `/pros/${userId}` : "/login", label: "My profile" },
+        { href: "/messages", label: "Messages" },
       ]
     : [
         { href: "/", label: "Browse" },
-        { href: "/jobs/new", label: "Post a job" },
         { href: "/jobs", label: "My jobs" },
+        { href: "/messages", label: "Messages" },
       ];
 
   const active = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
-  const topLink = "text-sm font-semibold text-[#B43C0A] no-underline hover:underline";
+  const activeIndex = tabs.findIndex((t) => active(t.href));
+  const topLink = "text-sm font-semibold text-[var(--rust)] no-underline hover:text-[var(--rust-dark)]";
 
   return (
     <>
-      {/* Top bar */}
-      <header className="sticky top-0 z-10 border-b border-[#E2DCCF] bg-[#F4F1EA]/95 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-[var(--line)] bg-[var(--paper)]/95 backdrop-blur">
         <div className="mx-auto flex max-w-md items-center justify-between gap-4 px-5 py-3">
-          <Link href="/" className="text-xl font-extrabold tracking-tight text-[#1C1B19] no-underline">
-            [APP NAME]
+          <Link href="/" className="font-display text-xl font-extrabold text-[var(--ink)] no-underline">
+            [NAME]
           </Link>
 
           <nav className="flex items-center gap-4">
-            {/* Wider screens get the full set of links up here */}
             <div className="hidden items-center gap-4 sm:flex">
               {ready &&
                 (isPro ? (
@@ -79,15 +77,13 @@ export default function NavBar() {
                 ) : null)}
             </div>
 
-                       {ready && userId && (
+            {ready && userId && (
               <>
                 <Link href="/messages" className={topLink}>Messages</Link>
                 {isPro && (
-                  <Link href={`/pros/${userId}`} className={topLink}>
-                    My profile
-                  </Link>
+                  <Link href={`/pros/${userId}`} className={topLink}>My profile</Link>
                 )}
-                <button type="button" onClick={logOut} className="text-sm font-medium text-[#4A4740] underline">
+                <button type="button" onClick={logOut} className="press text-sm font-medium text-[var(--ink-soft)] underline">
                   Log out
                 </button>
               </>
@@ -98,7 +94,7 @@ export default function NavBar() {
                 <Link href="/login" className={topLink}>Log in</Link>
                 <Link
                   href="/signup"
-                  className="rounded-xl bg-[#B43C0A] px-3 py-2 text-sm font-semibold text-white no-underline"
+                  className="press rounded-[10px] bg-[var(--rust)] px-3 py-2 text-sm font-semibold text-white no-underline"
                 >
                   Sign up
                 </Link>
@@ -108,16 +104,22 @@ export default function NavBar() {
         </div>
       </header>
 
-      {/* Bottom tabs, phones only, signed in only */}
+      {/* bottom tabs on phones, with a sliding indicator */}
       {ready && userId && (
-        <nav className="fixed bottom-0 left-0 right-0 z-10 border-t border-[#D9D3C6] bg-white sm:hidden">
-          <div className="mx-auto grid max-w-md grid-cols-3">
+        <nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-[var(--line)] bg-[var(--card)] sm:hidden">
+          <div className="relative mx-auto grid max-w-md grid-cols-3 pt-2 pb-3.5">
+            {activeIndex >= 0 && (
+              <span
+                className="absolute top-0 h-[3px] w-10 rounded-sm bg-[var(--rust)] transition-[left] duration-300 ease-out"
+                style={{ left: `calc(${activeIndex * 33.333}% + 16.666% - 20px)` }}
+              />
+            )}
             {tabs.map((t) => (
               <Link
                 key={t.href}
                 href={t.href}
-                className={`py-3 text-center text-xs font-semibold no-underline ${
-                  active(t.href) ? "text-[#B43C0A]" : "text-[#5C584F]"
+                className={`press py-1.5 text-center text-xs no-underline ${
+                  active(t.href) ? "font-semibold text-[var(--rust)]" : "font-medium text-[var(--ink-faint)]"
                 }`}
               >
                 {t.label}
