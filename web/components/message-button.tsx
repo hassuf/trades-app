@@ -9,15 +9,18 @@ export default function MessageButton({
   jobPostId = null,
   label = "Message",
   variant = "solid",
+  grow = false,
 }: {
   proId: string;
   jobPostId?: string | null;
   label?: string;
-  variant?: "solid" | "plain";
+  variant?: "solid" | "outline" | "plain";
+  grow?: boolean;
 }) {
   const router = useRouter();
   const supabase = createClient();
   const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
 
   async function open() {
     setBusy(true);
@@ -28,17 +31,16 @@ export default function MessageButton({
     }
     if (auth.user.id === proId) {
       setBusy(false);
-      alert("That's your own profile.");
+      setNote("That's your own profile.");
       return;
     }
 
-    // Reuse the existing conversation if there is one.
     const { data: existing } = await supabase
       .from("conversations")
       .select("id")
       .eq("homeowner_id", auth.user.id)
       .eq("pro_id", proId)
-      .is("job_post_id", jobPostId === null ? null : undefined)
+      .limit(1)
       .maybeSingle();
 
     if (existing) {
@@ -54,20 +56,31 @@ export default function MessageButton({
 
     setBusy(false);
     if (error || !created) {
-      alert("Couldn't start that conversation. Try again.");
+      setNote("Couldn't start that conversation. Try again.");
       return;
     }
     router.push(`/messages/${created.id}`);
   }
 
+  const base = "press h-[47px] rounded-xl text-sm font-semibold disabled:opacity-60";
   const styles =
     variant === "solid"
-      ? "rounded-xl bg-[#B43C0A] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
-      : "text-sm font-semibold text-[#B43C0A] underline disabled:opacity-60";
+      ? `${base} bg-[var(--rust)] px-5 text-white`
+      : variant === "outline"
+      ? `${base} border border-[var(--ink)] bg-[var(--card)] px-5 text-[var(--ink)]`
+      : "press text-sm font-semibold text-[var(--rust)] underline disabled:opacity-60";
 
   return (
-    <button type="button" onClick={open} disabled={busy} className={styles}>
-      {busy ? "Opening…" : label}
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={open}
+        disabled={busy}
+        className={`${styles} ${grow ? "flex-[2]" : variant === "plain" ? "" : "flex-1"}`}
+      >
+        {busy ? "Opening…" : label}
+      </button>
+      {note && <span className="self-center text-xs text-[var(--ink-faint)]">{note}</span>}
+    </>
   );
 }
