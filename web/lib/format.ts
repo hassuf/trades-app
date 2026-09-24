@@ -31,6 +31,7 @@ export const tierLabel: Record<string, string> = {
 
 // Web address for an uploaded photo or video.
 export function mediaUrl(path: string) {
+  if (path.startsWith("http")) return path;
   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/portfolio/${path}`;
 }
 
@@ -43,6 +44,7 @@ export function monthLabel(date: string | null) {
 
 // Web address for a photo or video attached to a job post.
 export function jobMediaUrl(path: string) {
+  if (path.startsWith("http")) return path;
   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/jobs/${path}`;
 }
 
