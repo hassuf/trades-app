@@ -150,8 +150,7 @@ export default async function BrowsePage({
     <main className="min-h-screen">
       {/* ---------- Hero ---------- */}
       <section className="bg-[var(--dark)] text-[#fbf8f1]">
-        <div className="mx-auto flex max-w-[1440px] flex-col gap-8 px-5 py-6 lg:flex-row lg:items-center lg:gap-14 lg:px-14 lg:py-13">
-          <div className="flex flex-col gap-3 lg:w-[620px] lg:gap-5">
+        <div className="mx-auto flex max-w-[1440px] min-w-0 flex-col gap-8 px-5 py-6 lg:flex-row lg:items-center lg:gap-14 lg:px-14 lg:py-13">          <div className="flex flex-col gap-3 lg:w-[620px] lg:gap-5">
             <h1 className="rise font-display text-[28px] font-extrabold leading-[1.1] lg:text-[54px] lg:leading-[1.04]">
               See the price
               <br />
@@ -288,8 +287,7 @@ export default async function BrowsePage({
       </section>
 
       {/* ---------- Results ---------- */}
-      <div className="mx-auto flex max-w-[1440px] gap-8 px-5 lg:px-14 lg:py-9">
-        {/* Filter rail, desktop only */}
+      <div className="mx-auto flex max-w-[1440px] flex-col gap-8 px-5 lg:flex-row lg:px-14 lg:py-9">        {/* Filter rail, desktop only */}
         <aside className="hidden w-[248px] shrink-0 flex-col gap-6 lg:flex">
           <form action="/" className="flex flex-col gap-6">
             {category && <input type="hidden" name="category" value={category} />}
@@ -342,8 +340,7 @@ export default async function BrowsePage({
         </aside>
 
         {/* Grid */}
-        <div className="flex flex-1 flex-col gap-4 py-4 lg:gap-[18px] lg:py-0">
-          {/* phone chips */}
+        <div className="flex min-w-0 flex-1 flex-col gap-4 py-4 lg:gap-[18px] lg:py-0">          {/* phone chips */}
           <div className="rail flex gap-2 lg:hidden">
             <Link href="/" className={chip(!category)}>All</Link>
             {(categories ?? []).map((c) => (
