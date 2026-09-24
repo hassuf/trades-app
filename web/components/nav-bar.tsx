@@ -73,7 +73,7 @@ export default function NavBar() {
           {/* Left: logo + sections */}
           <div className="flex items-center gap-10">
             <Link href="/" className="font-display text-xl font-extrabold text-[var(--ink)] no-underline lg:text-[23px]">
-              [NAME]
+              FairWork
             </Link>
             <div className="hidden items-center gap-7 lg:flex">
               <Link href="/" className={navLink}>Browse pros</Link>

@@ -16,8 +16,9 @@ const body = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "See the price before you call",
-  description: "Local trades publish what they charge and show the work they just finished.",
+  title: "FairWork — see the price before you call",
+  description:
+    "Local trades publish what they charge and show the work they just finished. No lead fees, no bidding wars.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

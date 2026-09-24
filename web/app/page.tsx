@@ -495,7 +495,7 @@ export default async function BrowsePage({
       <footer className="mt-10 bg-[var(--dark)] text-[#d8d2c4]">
         <div className="mx-auto flex max-w-[1440px] flex-col justify-between gap-8 px-5 py-8 lg:flex-row lg:px-14">
           <div className="flex max-w-[300px] flex-col gap-2">
-            <span className="font-display text-[19px] font-extrabold text-[#fbf8f1]">[NAME]</span>
+            <span className="font-display text-[19px] font-extrabold text-[#fbf8f1]">FairWork</span>
             <span className="text-[13.5px] leading-relaxed">
               Prices from local trades, and the work they finished last month.
             </span>
