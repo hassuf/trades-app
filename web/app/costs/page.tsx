@@ -2,8 +2,10 @@ import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { money, type RateItem } from "@/lib/format";
 
+
+
 export const metadata = {
-  title: "What things cost in your area",
+  title: "Going Rates",
   description: "Real published rates from local trades, not national averages.",
 };
 

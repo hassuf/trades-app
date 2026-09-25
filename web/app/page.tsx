@@ -6,6 +6,13 @@ import SaveButton from "@/components/save-button";
 type Media = { id: string; kind: "photo" | "video"; storage_path: string; sort_order: number };
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
+  "general-contracting": (
+    <>
+      <path d="M3 21h18" />
+      <path d="M5 21V8l7-5 7 5v13" />
+      <path d="M10 21v-6h4v6" />
+    </>
+  ),
   electrical: <path d="M13 3L5 14h6l-1 7 8-11h-6z" />,
   handyman: (
     <>
@@ -20,12 +27,28 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
       <path d="M14 12h6v6h-6z" />
     </>
   ),
-  decks: (
+  hvac: (
     <>
-      <path d="M3 9h18" />
-      <path d="M3 15h18" />
-      <path d="M7 4v16" />
-      <path d="M17 4v16" />
+      <rect x="3" y="4" width="18" height="9" rx="2" />
+      <path d="M7 17v2M12 17v3M17 17v2" />
+    </>
+  ),
+  bathroom: (
+    <>
+      <path d="M4 12h16v4a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z" />
+      <path d="M8 12V6a2 2 0 0 1 4 0" />
+    </>
+  ),
+  carpentry: (
+    <>
+      <path d="M4 18l10-10" />
+      <path d="M12 4l8 8-4 4-8-8z" />
+    </>
+  ),
+  drywall: (
+    <>
+      <rect x="3" y="4" width="18" height="16" rx="1" />
+      <path d="M3 10h18M9 4v16" />
     </>
   ),
   painting: (
@@ -34,10 +57,75 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
       <path d="M17 8h3v4l-6 3v4" />
     </>
   ),
-  bathroom: (
+  flooring: (
     <>
-      <path d="M4 12h16v4a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z" />
-      <path d="M8 12V6a2 2 0 0 1 4 0" />
+      <path d="M3 8h18M3 14h18" />
+      <path d="M8 4v4M15 8v6M10 14v6" />
+    </>
+  ),
+  roofing: (
+    <>
+      <path d="M2 12L12 4l10 8" />
+      <path d="M5 12v8h14v-8" />
+    </>
+  ),
+  gutters: (
+    <>
+      <path d="M3 6l9-3 9 3" />
+      <path d="M4 10h16v3H4z" />
+      <path d="M8 13v7M16 13v4" />
+    </>
+  ),
+  "windows-doors": (
+    <>
+      <rect x="4" y="3" width="16" height="18" rx="1" />
+      <path d="M12 3v18M4 12h16" />
+    </>
+  ),
+  masonry: (
+    <>
+      <path d="M3 7h18M3 12h18M3 17h18" />
+      <path d="M8 7v5M16 12v5" />
+    </>
+  ),
+  concrete: (
+    <>
+      <path d="M4 16h16l-2 5H6z" />
+      <circle cx="9" cy="7" r="3" />
+      <path d="M12 9l5 3" />
+    </>
+  ),
+  decks: (
+    <>
+      <path d="M3 9h18" />
+      <path d="M3 15h18" />
+      <path d="M7 4v16" />
+      <path d="M17 4v16" />
+    </>
+  ),
+  fencing: (
+    <>
+      <path d="M4 20V9l2-3 2 3v11M14 20V9l2-3 2 3v11" />
+      <path d="M2 12h20M2 16h20" />
+    </>
+  ),
+  landscaping: (
+    <>
+      <path d="M12 20v-7" />
+      <path d="M12 13c-4 0-6-2-6-5 3 0 6 2 6 5zM12 13c4 0 6-2 6-5-3 0-6 2-6 5z" />
+    </>
+  ),
+  "tree-service": (
+    <>
+      <path d="M12 21v-5" />
+      <path d="M12 16a5 5 0 0 1-4-8 4 4 0 0 1 8 0 5 5 0 0 1-4 8z" />
+    </>
+  ),
+  appliance: (
+    <>
+      <rect x="5" y="3" width="14" height="18" rx="2" />
+      <path d="M5 9h14" />
+      <circle cx="12" cy="15" r="3" />
     </>
   ),
 };
@@ -67,7 +155,11 @@ export default async function BrowsePage({
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  const { data: categories } = await supabase.from("categories").select("id, slug, name").order("id");
+  const { data: categories } = await supabase
+    .from("categories")
+    .select("id, slug, name")
+    .order("sort_order")
+    .order("id");
 
   const { data: prosData } = await supabase
     .from("pros")
@@ -76,21 +168,37 @@ export default async function BrowsePage({
        license_verified, license_state, insured,
        profiles!pros_id_fkey(full_name),
        pro_categories(categories(slug, name)),
-       rate_items(id, title, description, unit, size_tier, price_min_cents, price_max_cents),
+       rate_items(id, title, description, unit, size_tier, price_min_cents, price_max_cents, category_id),
        portfolio_items(id, title, neighborhood, portfolio_media(id, kind, storage_path, sort_order))`
     );
 
   const all = (prosData as any[]) ?? [];
 
-  // Cheapest published price per category, for the icon rail.
+  // Cheapest published price for each trade, using each rate line's own trade.
+  const slugById: Record<number, string> = {};
+  (categories ?? []).forEach((c) => {
+    slugById[c.id] = c.slug;
+  });
+
   const fromPrice: Record<string, number> = {};
   all.forEach((p) => {
-    const min = cheapest(p.rate_items ?? [])?.price_min_cents;
-    if (!min) return;
-    (p.pro_categories ?? []).forEach((pc: any) => {
-      const slug = pc.categories?.slug;
+    const proSlugs: string[] = (p.pro_categories ?? [])
+      .map((pc: any) => pc.categories?.slug)
+      .filter(Boolean);
+
+    (p.rate_items ?? []).forEach((r: any) => {
+      if (r.unit !== "flat") return;
+      // A line tagged with a trade counts for that trade. An untagged line only
+      // counts when the pro does a single trade, so we're not guessing.
+      const slug = r.category_id
+        ? slugById[r.category_id]
+        : proSlugs.length === 1
+        ? proSlugs[0]
+        : null;
       if (!slug) return;
-      if (!fromPrice[slug] || min < fromPrice[slug]) fromPrice[slug] = min;
+      if (!fromPrice[slug] || r.price_min_cents < fromPrice[slug]) {
+        fromPrice[slug] = r.price_min_cents;
+      }
     });
   });
 
@@ -150,7 +258,8 @@ export default async function BrowsePage({
     <main className="min-h-screen">
       {/* ---------- Hero ---------- */}
       <section className="bg-[var(--dark)] text-[#fbf8f1]">
-        <div className="mx-auto flex max-w-[1440px] min-w-0 flex-col gap-8 px-5 py-6 lg:flex-row lg:items-center lg:gap-14 lg:px-14 lg:py-13">          <div className="flex flex-col gap-3 lg:w-[620px] lg:gap-5">
+        <div className="mx-auto flex min-w-0 max-w-[1440px] flex-col gap-8 px-5 py-6 lg:flex-row lg:items-center lg:gap-14 lg:px-14 lg:py-13">
+          <div className="flex flex-col gap-3 lg:w-[620px] lg:gap-5">
             <h1 className="rise font-display text-[28px] font-extrabold leading-[1.1] lg:text-[54px] lg:leading-[1.04]">
               See the price
               <br />
@@ -262,23 +371,23 @@ export default async function BrowsePage({
           ))}
         </div>
 
-        {/* desktop: category tiles */}
-        <div className="mx-auto hidden max-w-[1440px] gap-3.5 px-14 py-6 lg:grid lg:grid-cols-6">
-          {(categories ?? []).slice(0, 6).map((c) => {
+        {/* desktop: scrolling trade rail */}
+        <div className="rail mx-auto hidden max-w-[1440px] gap-3.5 px-14 py-6 lg:flex">
+          {(categories ?? []).map((c) => {
             const from = fromPrice[c.slug];
             const on = category === c.slug;
             return (
               <Link
                 key={c.id}
                 href={on ? "/" : `/?category=${c.slug}`}
-                className={`flex flex-col items-center gap-2 rounded-[14px] border px-2.5 py-4 no-underline transition-transform duration-200 hover:-translate-y-0.5 hover:bg-[var(--card)] ${
+                className={`flex w-[132px] shrink-0 flex-col items-center gap-2 rounded-[14px] border px-2.5 py-4 text-center no-underline transition-transform duration-200 hover:-translate-y-0.5 hover:bg-[var(--card)] ${
                   on ? "border-[var(--ink)] bg-[var(--paper)]" : "border-[#e8e1d3] bg-[#f7f4ec]"
                 }`}
               >
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--rust)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   {CATEGORY_ICONS[c.slug] ?? <circle cx="12" cy="12" r="8" />}
                 </svg>
-                <span className="text-sm font-semibold text-[var(--ink)]">{c.name}</span>
+                <span className="text-[13.5px] font-semibold leading-tight text-[var(--ink)]">{c.name}</span>
                 <span className="text-xs text-[#6b665c]">{from ? `from ${money(from)}` : "no prices yet"}</span>
               </Link>
             );
@@ -287,7 +396,8 @@ export default async function BrowsePage({
       </section>
 
       {/* ---------- Results ---------- */}
-      <div className="mx-auto flex max-w-[1440px] flex-col gap-8 px-5 lg:flex-row lg:px-14 lg:py-9">        {/* Filter rail, desktop only */}
+      <div className="mx-auto flex max-w-[1440px] flex-col gap-8 px-5 lg:flex-row lg:px-14 lg:py-9">
+        {/* Filter rail, desktop only */}
         <aside className="hidden w-[248px] shrink-0 flex-col gap-6 lg:flex">
           <form action="/" className="flex flex-col gap-6">
             {category && <input type="hidden" name="category" value={category} />}
@@ -340,7 +450,8 @@ export default async function BrowsePage({
         </aside>
 
         {/* Grid */}
-        <div className="flex min-w-0 flex-1 flex-col gap-4 py-4 lg:gap-[18px] lg:py-0">          {/* phone chips */}
+        <div className="flex min-w-0 flex-1 flex-col gap-4 py-4 lg:gap-[18px] lg:py-0">
+          {/* phone chips */}
           <div className="rail flex gap-2 lg:hidden">
             <Link href="/" className={chip(!category)}>All</Link>
             {(categories ?? []).map((c) => (
@@ -501,7 +612,7 @@ export default async function BrowsePage({
             <div className="flex flex-col gap-2">
               <span className="font-semibold text-[#fbf8f1]">For homeowners</span>
               <Link href="/" className="text-[#d8d2c4] no-underline hover:underline">Browse pros</Link>
-              <Link href="/costs" className="text-[#d8d2c4] no-underline hover:underline">What things cost</Link>
+              <Link href="/costs" className="text-[#d8d2c4] no-underline hover:underline">Going rates</Link>
               <Link href="/jobs/new" className="text-[#d8d2c4] no-underline hover:underline">Post a job</Link>
             </div>
             <div className="flex flex-col gap-2">

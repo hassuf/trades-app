@@ -77,7 +77,7 @@ export default function NavBar() {
             </Link>
             <div className="hidden items-center gap-7 lg:flex">
               <Link href="/" className={navLink}>Browse pros</Link>
-              <Link href="/costs" className={navLink}>What things cost</Link>
+              <Link href="/costs" className={navLink}>Going rates</Link>
               {ready && isPro && <Link href="/pro/jobs-available" className={navLink}>Find work</Link>}
             </div>
           </div>
