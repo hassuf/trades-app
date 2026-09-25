@@ -94,7 +94,7 @@ export default function NavBar() {
               <Link href="/" className={navLink}>Browse pros</Link>
               <Link href="/costs" className={navLink}>Going rates</Link>
               {ready && isPro && <Link href="/pro/jobs-available" className={navLink}>Find work</Link>}
-            </div>
+              <Link href="/hiring" className={navLink}>Hiring board</Link>            </div>
           </div>
 
           <div className="flex items-center gap-4 lg:gap-6">

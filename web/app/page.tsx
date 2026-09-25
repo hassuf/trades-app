@@ -628,7 +628,7 @@ export default async function BrowsePage({
               <Link href="/signup" className="text-[#d8d2c4] no-underline hover:underline">List your work</Link>
               <Link href="/pro/rates" className="text-[#d8d2c4] no-underline hover:underline">Your rate card</Link>
               <Link href="/pro/jobs-available" className="text-[#d8d2c4] no-underline hover:underline">Find work</Link>
-            </div>
+              <Link href="/hiring" className="text-[#d8d2c4] no-underline hover:underline">Hiring board</Link>            </div>
           </div>
         </div>
       </footer>

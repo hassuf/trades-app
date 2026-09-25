@@ -125,6 +125,11 @@ export default function MenuDrawer({ categories }: { categories: Category[] }) {
             <Link href="/signup" className={item}>List your work</Link>
           )}
 
+          <div className={sectionLabel}>Hiring board</div>
+          <Link href="/hiring" className={item}>Looking for work?</Link>
+          <Link href="/hiring/new" className={item}>Post a role</Link>
+          {userId && <Link href="/hiring/mine" className={item}>Roles you posted</Link>}
+
           <div className={sectionLabel}>Trades</div>
           {categories.map((c) => (
             <Link key={c.id} href={`/?category=${c.slug}`} className={item}>
