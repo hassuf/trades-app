@@ -82,8 +82,7 @@ export default function MenuDrawer({ categories }: { categories: Category[] }) {
         role="dialog"
         aria-modal="true"
         aria-label="Menu"
-        className={`panel fixed left-0 top-0 z-50 flex h-full w-[86%] max-w-[340px] flex-col bg-[var(--paper)] shadow-[8px_0_30px_rgba(34,32,26,0.18)] ${
-          open ? "translate-x-0" : "-translate-x-full"
+        className={`panel fixed left-0 top-0 z-50 flex h-dvh w-[86%] max-w-[340px] flex-col bg-[var(--paper)] shadow-[8px_0_30px_rgba(34,32,26,0.18)] ${          open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex items-center justify-between border-b border-[var(--line)] px-4 py-3.5">

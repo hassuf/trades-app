@@ -272,8 +272,8 @@ export default async function BrowsePage({
               callbacks, no paying to be seen.
             </p>
 
-            <form action="/" className="rise flex flex-col gap-2 lg:flex-row" style={{ animationDelay: "0.14s" }}>
-              <label className="flex h-[46px] flex-1 items-center gap-2.5 rounded-xl bg-[var(--card)] px-3.5 lg:h-[58px] lg:rounded-[13px] lg:px-[18px]">
+            <form action="/" className="rise flex gap-2" style={{ animationDelay: "0.14s" }}>
+              <label className="flex h-[52px] flex-1 items-center gap-2.5 rounded-full bg-[var(--card)] pl-4 pr-1.5 shadow-[0_2px_12px_rgba(0,0,0,0.18)] lg:h-[58px] lg:rounded-[13px] lg:pr-[18px]">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b665c" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                   <circle cx="11" cy="11" r="7" />
                   <path d="M20 20l-3.5-3.5" />
@@ -283,12 +283,23 @@ export default async function BrowsePage({
                   defaultValue={q ?? ""}
                   aria-label="What do you need done?"
                   placeholder="Outlet install, deck, bathroom…"
-                  className="flex-1 bg-transparent text-sm text-[var(--ink)] outline-none lg:text-base"
+                  className="min-w-0 flex-1 bg-transparent text-[15px] text-[var(--ink)] outline-none lg:text-base"
                 />
+                {/* phones: round icon button inside the field */}
+                <button
+                  type="submit"
+                  aria-label="Search"
+                  className="press flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--rust)] text-white lg:hidden"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M5 12h13M13 6l6 6-6 6" />
+                  </svg>
+                </button>
               </label>
+              {/* desktop: full button beside the field */}
               <button
                 type="submit"
-                className="press h-[46px] shrink-0 rounded-xl bg-[var(--rust)] px-7 text-sm font-semibold text-white lg:h-[58px] lg:rounded-[13px] lg:text-base"
+                className="press hidden h-[58px] shrink-0 rounded-[13px] bg-[var(--rust)] px-7 text-base font-semibold text-white lg:block"
               >
                 Search
               </button>
@@ -356,8 +367,7 @@ export default async function BrowsePage({
       {/* ---------- Category rail ---------- */}
       <section className="border-b border-[var(--line)] bg-[var(--card)]">
         {/* phones: trust strip */}
-        <div className="mx-auto grid max-w-md grid-cols-3 lg:hidden">
-          {["Prices up front", "Licenses checked", "Pay when it's done"].map((label, i) => (
+        <div className="mx-auto grid w-full max-w-md grid-cols-3 lg:hidden">                    {["Prices up front", "Licenses checked", "Pay after the job"].map((label, i) => (
             <div
               key={label}
               className={`flex flex-col items-center gap-1.5 px-2.5 py-3 ${i < 2 ? "border-r border-[#e8e1d3]" : ""}`}
@@ -365,8 +375,7 @@ export default async function BrowsePage({
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke={i === 1 ? "var(--forest)" : "var(--rust)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M5 12l5 5 9-10" />
               </svg>
-              <span className="text-center text-[11px] font-medium leading-tight">{label}</span>
-            </div>
+              <span className="text-center text-[10.5px] font-medium leading-tight text-balance">{label}</span>            </div>
           ))}
         </div>
 
