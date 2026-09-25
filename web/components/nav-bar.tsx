@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import MenuDrawer from "@/components/menu-drawer";
+
+type Category = { id: number; slug: string; name: string };
 
 export default function NavBar() {
   const supabase = createClient();
@@ -13,10 +16,18 @@ export default function NavBar() {
   const [userId, setUserId] = useState<string | null>(null);
   const [isPro, setIsPro] = useState(false);
   const [initials, setInitials] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     async function load() {
+      const { data: cats } = await supabase
+        .from("categories")
+        .select("id, slug, name")
+        .order("sort_order")
+        .order("id");
+      setCategories(cats ?? []);
+
       const { data: auth } = await supabase.auth.getUser();
       if (auth.user) {
         setUserId(auth.user.id);
@@ -69,12 +80,16 @@ export default function NavBar() {
   return (
     <>
       <header className="sticky top-0 z-20 border-b border-[var(--line)] bg-[var(--paper)]/95 backdrop-blur">
-        <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-6 px-5 py-3 lg:px-14 lg:py-4">
-          {/* Left: logo + sections */}
-          <div className="flex items-center gap-10">
+        <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-4 py-3 lg:px-14 lg:py-4">
+          <div className="flex items-center gap-3 lg:gap-10">
+            <div className="lg:hidden">
+              <MenuDrawer categories={categories} />
+            </div>
+
             <Link href="/" className="font-display text-xl font-extrabold text-[var(--ink)] no-underline lg:text-[23px]">
               FairWork
             </Link>
+
             <div className="hidden items-center gap-7 lg:flex">
               <Link href="/" className={navLink}>Browse pros</Link>
               <Link href="/costs" className={navLink}>Going rates</Link>
@@ -82,12 +97,11 @@ export default function NavBar() {
             </div>
           </div>
 
-          {/* Right: account */}
           <div className="flex items-center gap-4 lg:gap-6">
             {ready && !userId && (
               <>
                 <Link href="/signup" className={`hidden lg:inline ${accentLink}`}>List your work</Link>
-                <Link href="/login" className={navLink}>Log in</Link>
+                <Link href="/login" className={`hidden sm:inline ${navLink}`}>Log in</Link>
                 <Link
                   href="/signup"
                   className="press rounded-[11px] bg-[var(--rust)] px-3 py-2 text-sm font-semibold text-white no-underline lg:px-[18px] lg:py-[11px] lg:text-[15px]"
@@ -114,11 +128,11 @@ export default function NavBar() {
                 {isPro && userId && (
                   <Link href={`/pros/${userId}`} className={`hidden lg:inline ${accentLink}`}>My profile</Link>
                 )}
-                <button type="button" onClick={logOut} className="press text-sm font-medium text-[var(--ink-soft)] underline lg:text-[15px]">
+                <button type="button" onClick={logOut} className="press hidden text-[15px] font-medium text-[var(--ink-soft)] underline lg:inline">
                   Log out
                 </button>
                 {initials && (
-                  <span className="hidden h-[34px] w-[34px] items-center justify-center rounded-full bg-[var(--sand)] text-[13px] font-semibold text-[#6b5a3e] lg:flex">
+                  <span className="flex h-[34px] w-[34px] items-center justify-center rounded-full bg-[var(--sand)] text-[13px] font-semibold text-[#6b5a3e]">
                     {initials}
                   </span>
                 )}
@@ -128,7 +142,6 @@ export default function NavBar() {
         </div>
       </header>
 
-      {/* Bottom tabs on phones */}
       {ready && userId && (
         <nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-[var(--line)] bg-[var(--card)] lg:hidden">
           <div className="relative mx-auto grid max-w-md grid-cols-3 pt-2 pb-3.5">

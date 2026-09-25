@@ -252,3 +252,30 @@ body {
   ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
 }
 html, body { overflow-x: hidden; max-width: 100%; }
+/* ---------- hero backdrop ---------- */
+/* A faint blueprint grid with a diagonal rule, drawn in CSS so there's no image to load. */
+.hero-pattern {
+  position: relative;
+  isolation: isolate;
+}
+.hero-pattern::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.5;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(251, 248, 241, 0.05) 0 1px, transparent 1px 48px),
+    repeating-linear-gradient(90deg, rgba(251, 248, 241, 0.05) 0 1px, transparent 1px 48px),
+    repeating-linear-gradient(135deg, rgba(163, 53, 8, 0.12) 0 2px, transparent 2px 22px);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero-pattern::before { transition: opacity 0.4s ease; }
+}
+
+/* ---------- compact cards in phone grid view ---------- */
+.compact .card-cover { height: 104px; }
+.compact .card-rates { display: none; }
+.compact .card-name { font-size: 14px; }
+.compact .card-meta { font-size: 11px; }
+.compact .card-foot { font-size: 10.5px; }

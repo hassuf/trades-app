@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { formatPrice, mediaUrl, money, type RateItem } from "@/lib/format";
 import SaveButton from "@/components/save-button";
+import ViewToggle from "@/components/view-toggle";
 
 type Media = { id: string; kind: "photo" | "video"; storage_path: string; sort_order: number };
 
@@ -188,8 +189,6 @@ export default async function BrowsePage({
 
     (p.rate_items ?? []).forEach((r: any) => {
       if (r.unit !== "flat") return;
-      // A line tagged with a trade counts for that trade. An untagged line only
-      // counts when the pro does a single trade, so we're not guessing.
       const slug = r.category_id
         ? slugById[r.category_id]
         : proSlugs.length === 1
@@ -257,7 +256,7 @@ export default async function BrowsePage({
   return (
     <main className="min-h-screen">
       {/* ---------- Hero ---------- */}
-      <section className="bg-[var(--dark)] text-[#fbf8f1]">
+      <section className="hero-pattern bg-[var(--dark)] text-[#fbf8f1]">
         <div className="mx-auto flex min-w-0 max-w-[1440px] flex-col gap-8 px-5 py-6 lg:flex-row lg:items-center lg:gap-14 lg:px-14 lg:py-13">
           <div className="flex flex-col gap-3 lg:w-[620px] lg:gap-5">
             <h1 className="rise font-display text-[28px] font-extrabold leading-[1.1] lg:text-[54px] lg:leading-[1.04]">
@@ -461,7 +460,7 @@ export default async function BrowsePage({
             ))}
           </div>
 
-          <div className="flex items-baseline justify-between gap-4">
+          <div className="flex items-center justify-between gap-4">
             <div className="flex flex-col gap-0.5">
               <h2 className="font-display text-[15px] font-semibold lg:text-[22px] lg:font-extrabold">
                 {activeCategoryName ? `${activeCategoryName} near you` : "Pros near you"}
@@ -471,7 +470,7 @@ export default async function BrowsePage({
                 {q ? ` matching "${q}"` : ""}
               </span>
             </div>
-            <span className="text-[13px] font-medium text-[var(--rust)] lg:hidden">Lowest price first</span>
+            <ViewToggle />
           </div>
 
           {pros.length === 0 && (
@@ -482,7 +481,7 @@ export default async function BrowsePage({
             </p>
           )}
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-[18px] xl:grid-cols-3">
+          <div id="pro-grid" className="grid grid-cols-1 gap-4 lg:!grid-cols-2 lg:gap-[18px] xl:!grid-cols-3">
             {pros.map((pro: any, i: number) => {
               const name = pro.business_name || pro.profiles?.full_name || "Unnamed pro";
               const initials = name
@@ -510,7 +509,7 @@ export default async function BrowsePage({
                   className="card rise flex flex-col overflow-hidden rounded-[17px] border border-[var(--line)] bg-[var(--card)] no-underline"
                   style={{ animationDelay: `${0.05 * i}s` }}
                 >
-                  <div className="relative h-[150px] overflow-hidden bg-[var(--sand)] lg:h-[146px]">
+                  <div className="card-cover relative h-[150px] overflow-hidden bg-[var(--sand)] lg:h-[146px]">
                     {cover ? (
                       cover.kind === "video" ? (
                         <video src={mediaUrl(cover.storage_path)} className="shot h-full w-full object-cover" muted playsInline preload="metadata" />
@@ -540,8 +539,8 @@ export default async function BrowsePage({
                       {initials}
                     </div>
                     <div className="flex min-w-0 flex-col gap-0.5">
-                      <span className="font-display text-[15.5px] font-extrabold text-[var(--ink)]">{name}</span>
-                      <span className="truncate text-xs text-[var(--ink-faint)]">
+                      <span className="card-name font-display text-[15.5px] font-extrabold text-[var(--ink)]">{name}</span>
+                      <span className="card-meta truncate text-xs text-[var(--ink-faint)]">
                         {[trades.join(", "), pro.years_experience != null ? `${pro.years_experience} yrs` : null]
                           .filter(Boolean)
                           .join(" · ")}
@@ -550,7 +549,7 @@ export default async function BrowsePage({
                   </div>
 
                   {rows.length > 0 ? (
-                    <div className="mx-4 mt-3 overflow-hidden rounded-[10px] border border-[#e8e1d3]">
+                    <div className="card-rates mx-4 mt-3 overflow-hidden rounded-[10px] border border-[#e8e1d3]">
                       {rows.map((r, n) => (
                         <div
                           key={r.id}
@@ -564,12 +563,12 @@ export default async function BrowsePage({
                       ))}
                     </div>
                   ) : (
-                    <p className="mx-4 mt-3 rounded-[10px] bg-[var(--paper)] px-2.5 py-2 text-[12.5px] text-[var(--ink-faint)]">
+                    <p className="card-rates mx-4 mt-3 rounded-[10px] bg-[var(--paper)] px-2.5 py-2 text-[12.5px] text-[var(--ink-faint)]">
                       No prices listed yet
                     </p>
                   )}
 
-                  <div className="mt-auto flex items-center justify-between gap-2.5 px-4 pb-3.5 pt-3">
+                  <div className="card-foot mt-auto flex items-center justify-between gap-2.5 px-4 pb-3.5 pt-3">
                     <span className={`text-[11.5px] font-semibold ${pro.license_verified ? "text-[var(--forest)]" : "text-[var(--ink-faint)]"}`}>
                       {pro.license_verified
                         ? `License verified${pro.license_state ? ` (${pro.license_state})` : ""}`
