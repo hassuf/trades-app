@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { jobMediaUrl, money, timingLabel } from "@/lib/format";
+import { money, timingLabel } from "@/lib/format";
 
 type Job = {
   id: string;
@@ -11,7 +11,6 @@ type Job = {
   zip: string;
   created_at: string;
   categories: { name: string } | null;
-  job_post_media: { id: string; kind: string; storage_path: string }[];
   quotes: { id: string }[];
 };
 
@@ -81,8 +80,14 @@ export default function TradeHome({ jobs, roles }: { jobs: Job[]; roles: Role[] 
         {/* Open jobs */}
         <section className="flex flex-col gap-4">
           <div className="flex items-baseline justify-between gap-4">
-            <h2 className="font-display text-lg font-extrabold lg:text-[22px]">Homeowners looking now</h2>
-            <Link href="/pro/jobs-available" className="link">See all</Link>
+            <div className="flex flex-col gap-0.5">
+              <h2 className="font-display text-lg font-extrabold lg:text-[22px]">Homeowners looking now</h2>
+              <span className="hint">
+                <Link href="/signup" className="link">Sign up free</Link> to read the full job, see photos, and
+                send a price.
+              </span>
+            </div>
+            <Link href="/pro/jobs-available" className="link shrink-0">See all</Link>
           </div>
 
           {jobs.length === 0 ? (
@@ -93,7 +98,6 @@ export default function TradeHome({ jobs, roles }: { jobs: Job[]; roles: Role[] 
           ) : (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
               {jobs.map((j, i) => {
-                const photo = j.job_post_media?.find((m) => m.kind === "photo");
                 const count = j.quotes?.length ?? 0;
                 return (
                   <Link
@@ -114,12 +118,9 @@ export default function TradeHome({ jobs, roles }: { jobs: Job[]; roles: Role[] 
                       <span className="shrink-0 text-[13px] font-semibold text-[var(--ink)]">{budget(j)}</span>
                     </div>
 
-                    <div className="flex gap-3">
-                      {photo && (
-                        <img src={jobMediaUrl(photo.storage_path)} alt="" className="h-16 w-16 shrink-0 rounded-lg object-cover" />
-                      )}
-                      <p className="line-clamp-3 text-[13.5px] leading-relaxed text-[var(--ink)]">{j.description}</p>
-                    </div>
+                    <p className="line-clamp-2 text-[13.5px] leading-relaxed text-[var(--ink)]">
+                      {j.description.length > 120 ? `${j.description.slice(0, 120)}…` : j.description}
+                    </p>
 
                     <span className={`text-[12px] font-semibold ${count === 0 ? "text-[var(--forest)]" : "text-[var(--ink-faint)]"}`}>
                       {count === 0 ? "No quotes yet" : `${count} quote${count > 1 ? "s" : ""} in`}

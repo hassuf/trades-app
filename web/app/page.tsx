@@ -164,13 +164,13 @@ export default async function BrowsePage({
     .select("id, slug, name")
     .order("sort_order")
     .order("id");
-      // Contractors see work, not competitors.
+  // Contractors see work, not competitors.
   if (view === "trade") {
     const { data: openJobs } = await supabase
       .from("job_posts")
       .select(
         `id, description, size_tier, budget_min_cents, budget_max_cents, timing, zip, created_at,
-         categories(name), job_post_media(id, kind, storage_path), quotes(id)`
+         categories(name), quotes(id)`
       )
       .eq("status", "open")
       .order("created_at", { ascending: false })
