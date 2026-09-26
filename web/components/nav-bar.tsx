@@ -123,7 +123,8 @@ export default function NavBar() {
                 <>
                   <Link href="/pro/jobs-available" className={navLink}>Find work</Link>
                   <Link href="/hiring" className={navLink}>Hiring board</Link>
-                  <Link href="/costs" className={navLink}>Going rates</Link>
+                   <Link href="/costs" className={navLink}>Going rates</Link>
+                  <Link href="/pro/market" className={navLink}>My pricing</Link>
                 </>
               )}
               {ready && !isTrade && (

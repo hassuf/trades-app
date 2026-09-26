@@ -134,6 +134,7 @@ export default function MenuDrawer({
                 <>
                   <Link href={`/pros/${userId}`} className={item}>My profile</Link>
                   <Link href="/pro/rates" className={item}>My rate card</Link>
+              <Link href="/pro/market" className={item}>Where my prices sit</Link>
                   <Link href="/pro/jobs" className={item}>My past jobs</Link>
                   <Link href="/pro/projects" className={item}>My projects</Link>
                   <Link href="/pro/setup" className={item}>Business details</Link>
