@@ -3,6 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 import { formatPrice, mediaUrl, money, type RateItem } from "@/lib/format";
 import SaveButton from "@/components/save-button";
 import ViewToggle from "@/components/view-toggle";
+import SideChooser from "@/components/side-chooser";
+import TradeHome from "@/components/trade-home";
 
 type Media = { id: string; kind: "photo" | "video"; storage_path: string; sort_order: number };
 
@@ -147,9 +149,10 @@ export default async function BrowsePage({
     insured?: string;
     media?: string;
     sort?: string;
+    view?: string;
   }>;
 }) {
-  const { category, q, verified, insured, media, sort } = await searchParams;
+  const { category, q, verified, insured, media, sort, view } = await searchParams;
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -161,6 +164,34 @@ export default async function BrowsePage({
     .select("id, slug, name")
     .order("sort_order")
     .order("id");
+      // Contractors see work, not competitors.
+  if (view === "trade") {
+    const { data: openJobs } = await supabase
+      .from("job_posts")
+      .select(
+        `id, description, size_tier, budget_min_cents, budget_max_cents, timing, zip, created_at,
+         categories(name), job_post_media(id, kind, storage_path), quotes(id)`
+      )
+      .eq("status", "open")
+      .order("created_at", { ascending: false })
+      .limit(6);
+
+    const { data: openRoles } = await supabase
+      .from("hire_posts")
+      .select(
+        `id, title, description, hire_type, pay_unit, pay_min_cents, pay_max_cents, zip, starts,
+         categories(name)`
+      )
+      .eq("status", "open")
+      .order("created_at", { ascending: false })
+      .limit(6);
+
+    return (
+      <main className="min-h-screen">
+        <TradeHome jobs={(openJobs as any[]) ?? []} roles={(openRoles as any[]) ?? []} />
+      </main>
+    );
+  }
 
   const { data: prosData } = await supabase
     .from("pros")
@@ -255,6 +286,8 @@ export default async function BrowsePage({
 
   return (
     <main className="min-h-screen">
+      <SideChooser />
+
       {/* ---------- Hero ---------- */}
       <section className="hero-pattern bg-[var(--dark)] text-[#fbf8f1]">
         <div className="mx-auto flex min-w-0 max-w-[1440px] flex-col gap-8 px-5 py-6 lg:flex-row lg:items-center lg:gap-14 lg:px-14 lg:py-13">

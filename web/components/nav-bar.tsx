@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import MenuDrawer from "@/components/menu-drawer";
+import SideSwitch from "@/components/side-switch";
 
 type Category = { id: number; slug: string; name: string };
 
@@ -94,13 +95,14 @@ export default function NavBar() {
             </Link>
 
             <div className="hidden items-center gap-7 lg:flex">
-              <Link href="/" className={navLink}>Browse pros</Link>
+              <Link href="/" className={navLink}>Browse trades</Link>
               <Link href="/costs" className={navLink}>Going rates</Link>
               {ready && isPro && <Link href="/pro/jobs-available" className={navLink}>Find work</Link>}
               <Link href="/hiring" className={navLink}>Hiring board</Link>            </div>
           </div>
 
-          <div className="flex items-center gap-4 lg:gap-6">
+             <div className="flex items-center gap-4 lg:gap-6">
+            <SideSwitch />
             {ready && !userId && (
               <>
                 <Link href="/signup" className={`hidden lg:inline ${accentLink}`}>List your work</Link>
