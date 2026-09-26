@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { sizeHint } from "@/lib/format";
 
@@ -11,8 +11,9 @@ type Size = "small" | "medium" | "large";
 const MAX_FILES = 6;
 const MAX_MB = 50;
 
-export default function NewJobPage() {
+function NewJobForm() {
   const router = useRouter();
+  const params = useSearchParams();
   const supabase = createClient();
 
   const [userId, setUserId] = useState<string | null>(null);
@@ -40,8 +41,16 @@ export default function NewJobPage() {
       }
       setUserId(auth.user.id);
 
-      const { data: cats } = await supabase.from("categories").select("id, name").order("id");
+      const { data: cats } = await supabase
+        .from("categories")
+        .select("id, name")
+        .order("sort_order")
+        .order("id");
       setCategories(cats ?? []);
+
+      // Came from the guided flow, so the trade is already known.
+      const fromHelp = params.get("category");
+      if (fromHelp) setCategoryId(fromHelp);
 
       const { data: profile } = await supabase.from("profiles").select("zip").eq("id", auth.user.id).maybeSingle();
       if (profile?.zip) setZip(profile.zip);
@@ -278,5 +287,19 @@ export default function NewJobPage() {
         <span className="hint -mt-4 text-center">Free to post. You pay only when you book.</span>
       </form>
     </main>
+  );
+}
+
+export default function NewJobPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="page">
+          <p className="text-sm text-[var(--ink-faint)]">Loading…</p>
+        </main>
+      }
+    >
+      <NewJobForm />
+    </Suspense>
   );
 }

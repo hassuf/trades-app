@@ -150,6 +150,7 @@ export default function MenuDrawer({
           ) : (
             <>
               <div className={sectionLabel}>Find someone</div>
+              <Link href="/help" className={item}>What do I need?</Link>
               <Link href="/" className={item}>Browse trades</Link>
               <Link href="/costs" className={item}>Going rates</Link>
 

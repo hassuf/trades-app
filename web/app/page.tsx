@@ -337,7 +337,16 @@ export default async function BrowsePage({
                 Search
               </button>
             </form>
-
+            <Link
+              href="/help"
+              className="rise flex w-fit items-center gap-2 text-sm font-semibold text-[#f0b49a] no-underline hover:text-white lg:text-[15px]"
+              style={{ animationDelay: "0.2s" }}
+            >
+              Not sure what you need? Start here
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M5 12h13M13 6l6 6-6 6" />
+              </svg>
+            </Link>
             <div className="hidden gap-7 pt-2 text-[13.5px] text-[#c9c2b2] lg:flex">
               {["Prices published up front", "Licenses checked by us", "Pay when the job is done"].map((t) => (
                 <span key={t} className="flex items-center gap-2">

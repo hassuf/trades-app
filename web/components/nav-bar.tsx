@@ -130,6 +130,7 @@ export default function NavBar() {
               {ready && !isTrade && (
                 <>
                   <Link href="/" className={navLink}>Browse trades</Link>
+                  <Link href="/help" className={navLink}>What do I need?</Link>
                   <Link href="/costs" className={navLink}>Going rates</Link>
                   <Link href="/jobs/new" className={navLink}>Post a job</Link>
                 </>
