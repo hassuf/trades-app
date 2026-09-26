@@ -14,31 +14,46 @@ export default function SideChooser() {
     }
   }, []);
 
+  // Stop the page scrolling behind the modal.
+  useEffect(() => {
+    document.body.style.overflow = show ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [show]);
+
   function choose(side: "homeowner" | "trade") {
     try {
       localStorage.setItem("fw-side", side);
     } catch {}
-    // A full reload so the home page renders the right side.
     window.location.href = side === "trade" ? "/?view=trade" : "/";
   }
 
   if (!show) return null;
 
   return (
-    <section className="border-b border-[var(--line)] bg-[var(--card)]">
-      <div className="mx-auto flex max-w-[1440px] flex-col gap-4 px-5 py-7 lg:px-14 lg:py-10">
-        <div className="flex flex-col gap-1.5">
-          <h2 className="font-display text-[22px] font-extrabold lg:text-[28px]">Which are you?</h2>
-          <p className="text-sm text-[var(--ink-soft)] lg:text-base">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="chooser-title"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-[var(--ink)]/60 p-5 backdrop-blur-sm"
+    >
+      <div className="rise w-full max-w-[560px] rounded-[22px] bg-[var(--paper)] p-6 shadow-[0_20px_60px_rgba(22,21,15,0.35)] lg:p-9">
+        <div className="flex flex-col gap-2 pb-6 text-center">
+          <span className="font-display text-xl font-extrabold lg:text-[22px]">Welcome to FairWork</span>
+          <h2 id="chooser-title" className="font-display text-[26px] font-extrabold leading-tight lg:text-[32px]">
+            Which are you?
+          </h2>
+          <p className="text-sm text-[var(--ink-soft)] lg:text-[15px]">
             So we show you the right thing first. You can switch any time.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:max-w-[760px]">
+        <div className="flex flex-col gap-3">
           <button
             type="button"
             onClick={() => choose("homeowner")}
-            className="press group flex items-center gap-4 rounded-2xl border border-[var(--line)] bg-[var(--paper)] p-5 text-left transition-all hover:-translate-y-0.5 hover:border-[var(--ink)] hover:shadow-[0_10px_22px_rgba(34,32,26,0.12)]"
+            className="press flex items-center gap-4 rounded-2xl border border-[var(--line)] bg-[var(--card)] p-5 text-left transition-all hover:-translate-y-0.5 hover:border-[var(--ink)] hover:shadow-[0_10px_22px_rgba(34,32,26,0.14)]"
           >
             <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[var(--sand)]">
               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--rust)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -58,7 +73,7 @@ export default function SideChooser() {
           <button
             type="button"
             onClick={() => choose("trade")}
-            className="press group flex items-center gap-4 rounded-2xl border border-[var(--line)] bg-[var(--paper)] p-5 text-left transition-all hover:-translate-y-0.5 hover:border-[var(--ink)] hover:shadow-[0_10px_22px_rgba(34,32,26,0.12)]"
+            className="press flex items-center gap-4 rounded-2xl border border-[var(--line)] bg-[var(--card)] p-5 text-left transition-all hover:-translate-y-0.5 hover:border-[var(--ink)] hover:shadow-[0_10px_22px_rgba(34,32,26,0.14)]"
           >
             <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[var(--sand)]">
               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--rust)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -76,6 +91,6 @@ export default function SideChooser() {
           </button>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
