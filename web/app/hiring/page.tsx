@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { Suspense, useEffect, useState } from "react";import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { money } from "@/lib/format";
@@ -32,8 +31,7 @@ const TYPE_LABEL: Record<string, string> = {
   day_rate: "Day work",
 };
 
-export default function HiringBoardPage() {
-  const router = useRouter();
+function HiringBoard() {  const router = useRouter();
   const params = useSearchParams();
   const supabase = createClient();
 
@@ -337,5 +335,19 @@ export default function HiringBoardPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function HiringBoardPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="page">
+          <p className="text-sm text-[var(--ink-faint)]">Loading…</p>
+        </main>
+      }
+    >
+      <HiringBoard />
+    </Suspense>
   );
 }
