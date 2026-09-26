@@ -55,6 +55,9 @@ export default function NavBar() {
 
   async function logOut() {
     await supabase.auth.signOut();
+    setUserId(null);
+    setIsPro(false);
+    setInitials("");
     router.push("/");
     router.refresh();
   }

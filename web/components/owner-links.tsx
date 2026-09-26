@@ -16,6 +16,7 @@ export default function OwnerLinks({ proId }: { proId: string }) {
 
   async function logOut() {
     await supabase.auth.signOut();
+    setIsOwner(false);
     router.push("/login");
     router.refresh();
   }

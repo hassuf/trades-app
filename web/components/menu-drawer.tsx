@@ -47,6 +47,9 @@ export default function MenuDrawer({ categories }: { categories: Category[] }) {
   async function logOut() {
     await supabase.auth.signOut();
     setOpen(false);
+    setUserId(null);
+    setIsPro(false);
+    setName("");
     router.push("/");
     router.refresh();
   }
