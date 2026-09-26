@@ -8,135 +8,27 @@ import TradeHome from "@/components/trade-home";
 
 type Media = { id: string; kind: "photo" | "video"; storage_path: string; sort_order: number };
 
-const CATEGORY_ICONS: Record<string, React.ReactNode> = {
-  "general-contracting": (
-    <>
-      <path d="M3 21h18" />
-      <path d="M5 21V8l7-5 7 5v13" />
-      <path d="M10 21v-6h4v6" />
-    </>
-  ),
-  electrical: <path d="M13 3L5 14h6l-1 7 8-11h-6z" />,
-  handyman: (
-    <>
-      <path d="M3 20l7-7" />
-      <path d="M13 7l4-4 4 4-4 4z" />
-      <path d="M10 13l3 3" />
-    </>
-  ),
-  plumbing: (
-    <>
-      <path d="M7 4v6a5 5 0 0 0 5 5h2" />
-      <path d="M14 12h6v6h-6z" />
-    </>
-  ),
-  hvac: (
-    <>
-      <rect x="3" y="4" width="18" height="9" rx="2" />
-      <path d="M7 17v2M12 17v3M17 17v2" />
-    </>
-  ),
-  bathroom: (
-    <>
-      <path d="M4 12h16v4a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z" />
-      <path d="M8 12V6a2 2 0 0 1 4 0" />
-    </>
-  ),
-  carpentry: (
-    <>
-      <path d="M4 18l10-10" />
-      <path d="M12 4l8 8-4 4-8-8z" />
-    </>
-  ),
-  drywall: (
-    <>
-      <rect x="3" y="4" width="18" height="16" rx="1" />
-      <path d="M3 10h18M9 4v16" />
-    </>
-  ),
-  painting: (
-    <>
-      <path d="M4 6h13v5H4z" />
-      <path d="M17 8h3v4l-6 3v4" />
-    </>
-  ),
-  flooring: (
-    <>
-      <path d="M3 8h18M3 14h18" />
-      <path d="M8 4v4M15 8v6M10 14v6" />
-    </>
-  ),
-  roofing: (
-    <>
-      <path d="M2 12L12 4l10 8" />
-      <path d="M5 12v8h14v-8" />
-    </>
-  ),
-  gutters: (
-    <>
-      <path d="M3 6l9-3 9 3" />
-      <path d="M4 10h16v3H4z" />
-      <path d="M8 13v7M16 13v4" />
-    </>
-  ),
-  "windows-doors": (
-    <>
-      <rect x="4" y="3" width="16" height="18" rx="1" />
-      <path d="M12 3v18M4 12h16" />
-    </>
-  ),
-  masonry: (
-    <>
-      <path d="M3 7h18M3 12h18M3 17h18" />
-      <path d="M8 7v5M16 12v5" />
-    </>
-  ),
-  concrete: (
-    <>
-      <path d="M4 16h16l-2 5H6z" />
-      <circle cx="9" cy="7" r="3" />
-      <path d="M12 9l5 3" />
-    </>
-  ),
-  decks: (
-    <>
-      <path d="M3 9h18" />
-      <path d="M3 15h18" />
-      <path d="M7 4v16" />
-      <path d="M17 4v16" />
-    </>
-  ),
-  fencing: (
-    <>
-      <path d="M4 20V9l2-3 2 3v11M14 20V9l2-3 2 3v11" />
-      <path d="M2 12h20M2 16h20" />
-    </>
-  ),
-  landscaping: (
-    <>
-      <path d="M12 20v-7" />
-      <path d="M12 13c-4 0-6-2-6-5 3 0 6 2 6 5zM12 13c4 0 6-2 6-5-3 0-6 2-6 5z" />
-    </>
-  ),
-  "tree-service": (
-    <>
-      <path d="M12 21v-5" />
-      <path d="M12 16a5 5 0 0 1-4-8 4 4 0 0 1 8 0 5 5 0 0 1-4 8z" />
-    </>
-  ),
-  appliance: (
-    <>
-      <rect x="5" y="3" width="14" height="18" rx="2" />
-      <path d="M5 9h14" />
-      <circle cx="12" cy="15" r="3" />
-    </>
-  ),
-};
+const SYMPTOMS = [
+  "My house is hot",
+  "Something's leaking",
+  "Lights cutting out",
+  "Stain on my ceiling",
+  "Redoing a room",
+];
 
 function cheapest(rates: RateItem[]) {
   const flat = rates.filter((r) => r.unit === "flat");
   if (flat.length === 0) return null;
   return flat.reduce((a, b) => (a.price_min_cents <= b.price_min_cents ? a : b));
+}
+
+function initialsOf(name: string) {
+  return name
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
 }
 
 export default async function BrowsePage({
@@ -164,6 +56,7 @@ export default async function BrowsePage({
     .select("id, slug, name")
     .order("sort_order")
     .order("id");
+
   // Contractors see work, not competitors.
   if (view === "trade") {
     const { data: openJobs } = await supabase
@@ -201,12 +94,12 @@ export default async function BrowsePage({
        profiles!pros_id_fkey(full_name),
        pro_categories(categories(slug, name)),
        rate_items(id, title, description, unit, size_tier, price_min_cents, price_max_cents, category_id),
-       portfolio_items(id, title, neighborhood, portfolio_media(id, kind, storage_path, sort_order))`
+       portfolio_items(id, title, neighborhood, completed_on, portfolio_media(id, kind, storage_path, sort_order))`
     );
 
   const all = (prosData as any[]) ?? [];
 
-  // Cheapest published price for each trade, using each rate line's own trade.
+  // Cheapest published price per trade, using each rate line's own trade.
   const slugById: Record<number, string> = {};
   (categories ?? []).forEach((c) => {
     slugById[c.id] = c.slug;
@@ -217,20 +110,77 @@ export default async function BrowsePage({
     const proSlugs: string[] = (p.pro_categories ?? [])
       .map((pc: any) => pc.categories?.slug)
       .filter(Boolean);
-
     (p.rate_items ?? []).forEach((r: any) => {
       if (r.unit !== "flat") return;
-      const slug = r.category_id
-        ? slugById[r.category_id]
-        : proSlugs.length === 1
-        ? proSlugs[0]
-        : null;
+      const slug = r.category_id ? slugById[r.category_id] : proSlugs.length === 1 ? proSlugs[0] : null;
       if (!slug) return;
-      if (!fromPrice[slug] || r.price_min_cents < fromPrice[slug]) {
-        fromPrice[slug] = r.price_min_cents;
-      }
+      if (!fromPrice[slug] || r.price_min_cents < fromPrice[slug]) fromPrice[slug] = r.price_min_cents;
     });
   });
+
+  // Finished projects with a real cost, for the price wall.
+  const { data: wallData } = await supabase
+    .from("gc_projects")
+    .select(
+      `id, title, neighborhood, final_cost_cents, pro_id,
+       gc_project_media(id, kind, storage_path, sort_order)`
+    )
+    .not("final_cost_cents", "is", null)
+    .order("completed_on", { ascending: false, nullsFirst: false })
+    .limit(8);
+
+  const nameById: Record<string, string> = {};
+  all.forEach((p) => {
+    nameById[p.id] = p.business_name || p.profiles?.full_name || "A trade";
+  });
+
+  // Fill the wall out with past jobs when there aren't enough priced projects.
+  type WallItem = {
+    key: string;
+    price: string | null;
+    job: string;
+    who: string;
+    kind: "photo" | "video" | null;
+    path: string | null;
+    hasVideo: boolean;
+  };
+
+  const wall: WallItem[] = [];
+
+  ((wallData as any[]) ?? []).forEach((p) => {
+    const media = [...(p.gc_project_media ?? [])].sort((a: Media, b: Media) => a.sort_order - b.sort_order);
+    const cover = media[0];
+    wall.push({
+      key: `proj-${p.id}`,
+      price: p.final_cost_cents ? money(p.final_cost_cents) : null,
+      job: p.title,
+      who: [nameById[p.pro_id], p.neighborhood].filter(Boolean).join(" · "),
+      kind: cover?.kind ?? null,
+      path: cover?.storage_path ?? null,
+      hasVideo: media.some((m: Media) => m.kind === "video"),
+    });
+  });
+
+  if (wall.length < 8) {
+    all.forEach((p) => {
+      (p.portfolio_items ?? []).forEach((j: any) => {
+        if (wall.length >= 8) return;
+        const media = [...(j.portfolio_media ?? [])].sort((a: Media, b: Media) => a.sort_order - b.sort_order);
+        const cover = media[0];
+        if (!cover) return;
+        const entry = cheapest(p.rate_items ?? []);
+        wall.push({
+          key: `job-${j.id}`,
+          price: entry ? formatPrice(entry) : null,
+          job: j.title,
+          who: [nameById[p.id], j.neighborhood].filter(Boolean).join(" · "),
+          kind: cover.kind,
+          path: cover.storage_path,
+          hasVideo: media.some((m: Media) => m.kind === "video"),
+        });
+      });
+    });
+  }
 
   let pros = all;
 
@@ -258,171 +208,220 @@ export default async function BrowsePage({
   if (verified) pros = pros.filter((p) => p.license_verified);
   if (insured) pros = pros.filter((p) => p.insured);
   if (media) {
-    pros = pros.filter((p) =>
-      (p.portfolio_items ?? []).some((j: any) => (j.portfolio_media ?? []).length > 0)
-    );
+    pros = pros.filter((p) => (p.portfolio_items ?? []).some((j: any) => (j.portfolio_media ?? []).length > 0));
   }
 
   pros.sort((a, b) => {
-    if (sort === "jobs") {
-      return (b.portfolio_items?.length ?? 0) - (a.portfolio_items?.length ?? 0);
-    }
-    if (sort === "experience") {
-      return (b.years_experience ?? 0) - (a.years_experience ?? 0);
-    }
+    if (sort === "jobs") return (b.portfolio_items?.length ?? 0) - (a.portfolio_items?.length ?? 0);
+    if (sort === "experience") return (b.years_experience ?? 0) - (a.years_experience ?? 0);
     const ca = cheapest(a.rate_items ?? [])?.price_min_cents ?? Infinity;
     const cb = cheapest(b.rate_items ?? [])?.price_min_cents ?? Infinity;
     return ca - cb;
   });
 
   const activeCategoryName = (categories ?? []).find((c) => c.slug === category)?.name;
+  const filtered = !!(category || q || verified || insured || media);
 
   const chip = (on: boolean) =>
     `chip flex h-[38px] shrink-0 items-center rounded-full border px-[15px] text-sm font-medium no-underline ${
-      on
-        ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--card)]"
-        : "border-[#ddd4c2] bg-[var(--card)] text-[var(--ink)]"
+      on ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--card)]" : "border-[var(--line)] bg-[var(--card)] text-[var(--ink)]"
     }`;
+
+  // Hero collage uses the two best-photographed trades.
+  const withPhotos = all.filter((p) =>
+    (p.portfolio_items ?? []).some((j: any) => (j.portfolio_media ?? []).length > 0)
+  );
+  const heroA = withPhotos[0];
+  const heroB = withPhotos[1];
+  const coverOf = (p: any) => {
+    const media = (p?.portfolio_items ?? [])
+      .flatMap((j: any) => (j.portfolio_media ?? []).map((m: Media) => ({ ...m, job: j })))
+      .sort((a: Media, b: Media) => a.sort_order - b.sort_order);
+    return media[0];
+  };
+  const heroCoverA = coverOf(heroA);
+  const heroCoverB = coverOf(heroB);
+  const heroRateA = heroA ? cheapest(heroA.rate_items ?? []) : null;
+  const heroRateB = heroB ? cheapest(heroB.rate_items ?? []) : null;
 
   return (
     <main className="min-h-screen">
       <SideChooser />
 
       {/* ---------- Hero ---------- */}
-      <section className="hero-pattern bg-[var(--dark)] text-[#fbf8f1]">
-        <div className="mx-auto flex min-w-0 max-w-[1440px] flex-col gap-8 px-5 py-6 lg:flex-row lg:items-center lg:gap-14 lg:px-14 lg:py-13">
-          <div className="flex flex-col gap-3 lg:w-[620px] lg:gap-5">
-            <h1 className="rise font-display text-[28px] font-extrabold leading-[1.1] lg:text-[54px] lg:leading-[1.04]">
-              See the price
-              <br />
-              before you call
-            </h1>
-            <p
-              className="rise text-sm leading-relaxed text-[#d8d2c4] lg:max-w-[520px] lg:text-[18px]"
-              style={{ animationDelay: "0.07s" }}
-            >
-              Local trades publish what they charge and show the work they just finished. No forms, no five
-              callbacks, no paying to be seen.
-            </p>
+      <section className="mx-auto flex max-w-[1440px] flex-col gap-8 px-5 pb-10 pt-6 lg:flex-row lg:items-start lg:gap-14 lg:px-16 lg:pb-14 lg:pt-10">
+        <div className="flex flex-col gap-4 lg:w-[620px] lg:gap-6 lg:pt-5">
+          <span className="rise flex items-center gap-2 text-[13.5px] font-semibold text-[var(--forest)] lg:text-sm">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M5 12l5 5 9-10" />
+            </svg>
+            No lead fees. Ever.
+          </span>
 
-            <form action="/" className="rise flex gap-2" style={{ animationDelay: "0.14s" }}>
-              <label className="flex h-[52px] flex-1 items-center gap-2.5 rounded-full bg-[var(--card)] pl-4 pr-1.5 shadow-[0_2px_12px_rgba(0,0,0,0.18)] lg:h-[58px] lg:rounded-[13px] lg:pr-[18px]">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b665c" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="M20 20l-3.5-3.5" />
-                </svg>
-                <input
-                  name="q"
-                  defaultValue={q ?? ""}
-                  aria-label="What do you need done?"
-                  placeholder="Outlet install, deck, bathroom…"
-                  className="min-w-0 flex-1 bg-transparent text-[15px] text-[var(--ink)] outline-none lg:text-base"
-                />
-                {/* phones: round icon button inside the field */}
-                <button
-                  type="submit"
-                  aria-label="Search"
-                  className="press flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--rust)] text-white lg:hidden"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M5 12h13M13 6l6 6-6 6" />
-                  </svg>
-                </button>
-              </label>
-              {/* desktop: full button beside the field */}
-              <button
-                type="submit"
-                className="press hidden h-[58px] shrink-0 rounded-[13px] bg-[var(--rust)] px-7 text-base font-semibold text-white lg:block"
-              >
-                Search
-              </button>
-            </form>
+          <h1 className="rise font-display text-[40px] font-black leading-[0.97] lg:text-[72px] lg:leading-[0.94]">
+            Know the price before you let anyone in.
+          </h1>
+
+          <p className="rise max-w-[520px] text-base leading-relaxed text-[var(--ink-soft)] lg:text-[19px]" style={{ animationDelay: "0.07s" }}>
+            Every trade here publishes what they charge and shows the work they finished last month. No forms.
+            No five callbacks. Nobody paid to reach you.
+          </p>
+
+          <form
+            action="/"
+            className="rise flex h-14 max-w-[560px] items-center gap-3 rounded-full border border-[var(--line)] bg-[var(--card)] pl-5 pr-1.5 shadow-[0_2px_10px_rgba(26,24,20,0.05)] lg:h-16 lg:pl-[22px]"
+            style={{ animationDelay: "0.14s" }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7a7060" strokeWidth="2" strokeLinecap="round" aria-hidden="true" className="shrink-0">
+              <circle cx="11" cy="11" r="7" />
+              <path d="M20 20l-3.5-3.5" />
+            </svg>
+            <input
+              name="q"
+              defaultValue={q ?? ""}
+              aria-label="What do you need done?"
+              placeholder="Outlet install, leaking tap, new deck…"
+              className="min-w-0 flex-1 bg-transparent text-[15px] text-[var(--ink)] outline-none lg:text-[16.5px]"
+            />
+            <button
+              type="submit"
+              className="press h-11 shrink-0 rounded-full bg-[var(--rust)] px-5 text-sm font-semibold text-white lg:h-[50px] lg:px-7 lg:text-base"
+            >
+              Search
+            </button>
+          </form>
+
+          <span className="rise text-sm text-[var(--ink-faint)] lg:text-[14.5px]" style={{ animationDelay: "0.2s" }}>
+            or{" "}
+            <Link href="/help" className="font-semibold text-[var(--rust)] underline">
+              tell us what's broken
+            </Link>{" "}
+            and we'll work out who you need
+          </span>
+        </div>
+
+        {/* Collage, desktop only */}
+        {heroCoverA && (
+          <div className="relative hidden h-[620px] flex-1 lg:block">
             <Link
-              href="/help"
-              className="rise flex w-fit items-center gap-2 text-sm font-semibold text-[#f0b49a] no-underline hover:text-white lg:text-[15px]"
-              style={{ animationDelay: "0.2s" }}
+              href={`/pros/${heroA.id}`}
+              className="absolute left-6 top-0 block h-[480px] w-[400px] overflow-hidden rounded-[20px] bg-[var(--sand)] shadow-[0_18px_40px_rgba(26,24,20,0.16)] no-underline"
             >
-              Not sure what you need? Start here
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M5 12h13M13 6l6 6-6 6" />
-              </svg>
+              {heroCoverA.kind === "video" ? (
+                <video src={mediaUrl(heroCoverA.storage_path)} className="h-full w-full object-cover" muted playsInline preload="metadata" />
+              ) : (
+                <img src={mediaUrl(heroCoverA.storage_path)} alt="" className="h-full w-full object-cover" />
+              )}
             </Link>
-            <div className="hidden gap-7 pt-2 text-[13.5px] text-[#c9c2b2] lg:flex">
-              {["Prices published up front", "Licenses checked by us", "Pay when the job is done"].map((t) => (
-                <span key={t} className="flex items-center gap-2">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8fbf9f" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M5 12l5 5 9-10" />
-                  </svg>
-                  {t}
-                </span>
-              ))}
-            </div>
-          </div>
 
-          {/* Sample cards, desktop only */}
-          {pros.length > 0 && (
-            <div className="hidden flex-1 gap-4 lg:flex">
-              {pros.slice(0, 2).map((pro: any, i: number) => {
-                const name = pro.business_name || pro.profiles?.full_name || "Unnamed pro";
-                const entry = cheapest(pro.rate_items ?? []);
-                const cover = (pro.portfolio_items ?? [])
-                  .flatMap((j: any) => (j.portfolio_media ?? []).map((m: Media) => ({ ...m, job: j })))
-                  .sort((a: Media, b: Media) => a.sort_order - b.sort_order)[0];
-                return (
-                  <Link
-                    key={pro.id}
-                    href={`/pros/${pro.id}`}
-                    className={`flex flex-1 flex-col overflow-hidden rounded-[18px] bg-[var(--card)] text-[var(--ink)] no-underline ${
-                      i === 1 ? "hidden xl:flex" : ""
-                    }`}
-                  >
-                    <div className="h-[176px] bg-[var(--sand)]">
-                      {cover?.kind === "photo" && (
-                        <img src={mediaUrl(cover.storage_path)} alt="" className="h-full w-full object-cover" />
-                      )}
-                      {cover?.kind === "video" && (
-                        <video src={mediaUrl(cover.storage_path)} className="h-full w-full bg-[var(--dark)] object-cover" muted playsInline preload="metadata" />
-                      )}
-                    </div>
-                    <div className="p-[18px]">
-                      <div className="font-display text-[17px] font-extrabold">{name}</div>
-                      {cover?.job && (
-                        <div className="mt-1 text-[13px] text-[var(--ink-faint)]">
-                          {[cover.job.title, cover.job.neighborhood].filter(Boolean).join(", ")}
-                        </div>
-                      )}
-                      {entry && (
-                        <div className="mt-3 flex justify-between border-t border-[#e8e1d3] pt-3 text-[13.5px]">
-                          <span>{entry.title}</span>
-                          <span className="font-semibold">{formatPrice(entry)}</span>
-                        </div>
-                      )}
-                    </div>
-                  </Link>
-                );
-              })}
+            {heroCoverB && (
+              <Link
+                href={`/pros/${heroB.id}`}
+                className="absolute right-0 top-24 block h-[300px] w-[300px] overflow-hidden rounded-[20px] bg-[var(--sand)] shadow-[0_18px_40px_rgba(26,24,20,0.2)] no-underline"
+              >
+                {heroCoverB.kind === "video" ? (
+                  <video src={mediaUrl(heroCoverB.storage_path)} className="h-full w-full object-cover" muted playsInline preload="metadata" />
+                ) : (
+                  <img src={mediaUrl(heroCoverB.storage_path)} alt="" className="h-full w-full object-cover" />
+                )}
+              </Link>
+            )}
+
+            {heroRateA && (
+              <div className="absolute left-0 top-[386px] w-[268px] rounded-2xl bg-[var(--card)] p-4 px-5 shadow-[0_14px_30px_rgba(26,24,20,0.16)]">
+                <div className="mb-1 text-[12.5px] text-[var(--ink-faint)]">
+                  {nameById[heroA.id]}
+                  {heroA.license_verified ? " · verified" : ""}
+                </div>
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-[14.5px]">{heroRateA.title}</span>
+                  <span className="font-display text-xl font-bold">{formatPrice(heroRateA)}</span>
+                </div>
+              </div>
+            )}
+
+            {heroRateB && (
+              <div className="absolute right-[34px] top-[452px] w-[250px] rounded-2xl bg-[var(--ink)] p-4 px-5 text-[var(--card)] shadow-[0_14px_30px_rgba(26,24,20,0.22)]">
+                <div className="mb-1 text-[12.5px] text-[#c9c0ae]">{nameById[heroB.id]}</div>
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-[14.5px]">{heroRateB.title}</span>
+                  <span className="font-display text-xl font-bold">{formatPrice(heroRateB)}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* ---------- Trust band ---------- */}
+      <section className="border-y border-[var(--line)] bg-[var(--card)]">
+        <div className="mx-auto grid max-w-[1440px] grid-cols-1 lg:grid-cols-3">
+          {[
+            {
+              title: "Prices published up front",
+              body: "Not \u201crequest a quote\u201d. Actual numbers, written by the person doing the work.",
+              colour: "var(--rust)",
+              path: "M4 7h16M4 12h11M4 17h7",
+            },
+            {
+              title: "We check every license",
+              body: "By hand, against the board. The badge means something here.",
+              colour: "var(--forest)",
+              path: "M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z",
+            },
+            {
+              title: "Pay when it's done",
+              body: "You only pay once you say the job is finished.",
+              colour: "var(--rust)",
+              path: "M3 6h18v12H3zM3 10h18",
+            },
+          ].map((item, i) => (
+            <div
+              key={item.title}
+              className={`flex items-start gap-4 px-5 py-5 lg:px-10 lg:py-[26px] ${
+                i < 2 ? "border-b border-[var(--line-soft)] lg:border-b-0 lg:border-r" : ""
+              } ${i === 0 ? "lg:pl-16" : ""} ${i === 2 ? "lg:pr-16" : ""}`}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={item.colour} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="mt-0.5 shrink-0">
+                <path d={item.path} />
+              </svg>
+              <div>
+                <div className="font-display mb-1 text-[17px] font-bold">{item.title}</div>
+                <div className="text-sm leading-relaxed text-[var(--ink-faint)]">{item.body}</div>
+              </div>
             </div>
-          )}
+          ))}
         </div>
       </section>
 
-      {/* ---------- Category rail ---------- */}
-      <section className="border-b border-[var(--line)] bg-[var(--card)]">
-        {/* phones: trust strip */}
-        <div className="mx-auto grid w-full max-w-md grid-cols-3 lg:hidden">                    {["Prices up front", "Licenses checked", "Pay after the job"].map((label, i) => (
-            <div
-              key={label}
-              className={`flex flex-col items-center gap-1.5 px-2.5 py-3 ${i < 2 ? "border-r border-[#e8e1d3]" : ""}`}
-            >
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke={i === 1 ? "var(--forest)" : "var(--rust)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M5 12l5 5 9-10" />
-              </svg>
-              <span className="text-center text-[10.5px] font-medium leading-tight text-balance">{label}</span>            </div>
-          ))}
+      {/* ---------- Not sure who you need ---------- */}
+      <section className="border-b border-[var(--line)] bg-[var(--sand)]">
+        <div className="mx-auto flex max-w-[1440px] flex-col gap-3 px-5 py-5 lg:flex-row lg:items-center lg:gap-6 lg:px-16">
+          <span className="font-display shrink-0 text-[17px] font-bold lg:text-lg">Not sure who you need?</span>
+          <div className="rail flex flex-1 gap-2.5">
+            {SYMPTOMS.map((s) => (
+              <Link
+                key={s}
+                href="/help"
+                className="chip shrink-0 rounded-full border border-[var(--line)] bg-[var(--card)] px-4 py-2.5 text-[14.5px] text-[var(--ink)] no-underline"
+              >
+                {s}
+              </Link>
+            ))}
+          </div>
+          <Link href="/help" className="hidden shrink-0 text-[14.5px] font-semibold text-[var(--rust)] no-underline hover:underline lg:block">
+            All of them
+          </Link>
         </div>
+      </section>
 
-        {/* desktop: scrolling trade rail */}
-        <div className="rail mx-auto hidden max-w-[1440px] gap-3.5 px-14 py-6 lg:flex">
+      {/* ---------- Trades ---------- */}
+      <section className="mx-auto flex max-w-[1440px] flex-col gap-5 px-5 pt-10 lg:px-16 lg:pt-13">
+        <div className="flex items-baseline justify-between gap-4">
+          <h2 className="font-display text-2xl font-black lg:text-[34px]">Start with a trade</h2>
+          <span className="text-sm text-[var(--ink-faint)]">{(categories ?? []).length} trades</span>
+        </div>
+        <div className="rail flex gap-3 lg:grid lg:grid-cols-6 lg:gap-3">
           {(categories ?? []).map((c) => {
             const from = fromPrice[c.slug];
             const on = category === c.slug;
@@ -430,15 +429,12 @@ export default async function BrowsePage({
               <Link
                 key={c.id}
                 href={on ? "/" : `/?category=${c.slug}`}
-                className={`flex w-[132px] shrink-0 flex-col items-center gap-2 rounded-[14px] border px-2.5 py-4 text-center no-underline transition-transform duration-200 hover:-translate-y-0.5 hover:bg-[var(--card)] ${
-                  on ? "border-[var(--ink)] bg-[var(--paper)]" : "border-[#e8e1d3] bg-[#f7f4ec]"
+                className={`chip flex w-[150px] shrink-0 flex-col gap-1.5 rounded-[14px] border p-[18px] no-underline lg:w-auto ${
+                  on ? "border-[var(--ink)] bg-[var(--sand)]" : "border-[var(--line)] bg-[#fdfaf3]"
                 }`}
               >
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--rust)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  {CATEGORY_ICONS[c.slug] ?? <circle cx="12" cy="12" r="8" />}
-                </svg>
-                <span className="text-[13.5px] font-semibold leading-tight text-[var(--ink)]">{c.name}</span>
-                <span className="text-xs text-[#6b665c]">{from ? `from ${money(from)}` : "no prices yet"}</span>
+                <span className="text-[15px] font-semibold text-[var(--ink)]">{c.name}</span>
+                <span className="text-[13px] text-[var(--ink-faint)]">{from ? `from ${money(from)}` : "no prices yet"}</span>
               </Link>
             );
           })}
@@ -446,18 +442,20 @@ export default async function BrowsePage({
       </section>
 
       {/* ---------- Results ---------- */}
-      <div className="mx-auto flex max-w-[1440px] flex-col gap-8 px-5 lg:flex-row lg:px-14 lg:py-9">
-        {/* Filter rail, desktop only */}
-        <aside className="hidden w-[248px] shrink-0 flex-col gap-6 lg:flex">
-          <form action="/" className="flex flex-col gap-6">
+      <section className="mx-auto flex max-w-[1440px] flex-col gap-6 px-5 pt-12 lg:flex-row lg:gap-10 lg:px-16 lg:pt-14">
+        {/* Filters */}
+        <aside className="hidden w-[240px] shrink-0 flex-col gap-6 lg:flex">
+          <form action="/" className="flex flex-col gap-5">
             {category && <input type="hidden" name="category" value={category} />}
             {q && <input type="hidden" name="q" value={q} />}
 
             <div className="flex items-baseline justify-between">
-              <span className="font-display text-base font-semibold">Filters</span>
-              <Link href="/" className="text-[13px] font-medium text-[var(--rust)] no-underline">
-                Clear all
-              </Link>
+              <span className="font-display text-lg font-bold">Filters</span>
+              {filtered && (
+                <Link href="/" className="text-[13px] font-medium text-[var(--rust)] no-underline">
+                  Clear
+                </Link>
+              )}
             </div>
 
             <fieldset className="flex flex-col gap-2.5 border-t border-[var(--line)] pt-4">
@@ -478,20 +476,20 @@ export default async function BrowsePage({
 
             <label className="flex flex-col gap-2 border-t border-[var(--line)] pt-4 text-[13px] font-semibold">
               Sort by
-              <select name="sort" defaultValue={sort ?? "price"} className="h-10 rounded-[10px] border border-[#ddd4c2] bg-[var(--card)] px-2.5 text-[13.5px] font-normal">
+              <select name="sort" defaultValue={sort ?? "price"} className="h-10 rounded-[10px] border border-[var(--line)] bg-[var(--card)] px-2.5 text-[13.5px] font-normal">
                 <option value="price">Lowest price first</option>
                 <option value="jobs">Most past jobs</option>
                 <option value="experience">Most experience</option>
               </select>
             </label>
 
-            <button type="submit" className="btn btn-dark btn-sm">Apply filters</button>
+            <button type="submit" className="btn btn-dark btn-sm">Apply</button>
           </form>
 
           <div className="flex flex-col gap-2.5 rounded-[14px] bg-[var(--sand)] p-4">
-            <span className="font-display text-[15px] font-extrabold">Can't find a fit?</span>
-            <span className="text-[13px] leading-relaxed text-[var(--ink-soft)]">
-              Describe the job once and pros who do that work send you a price.
+            <span className="font-display text-base font-bold">Can't find a fit?</span>
+            <span className="text-[13px] leading-relaxed text-[var(--ink-faint)]">
+              Describe the job once and trades who do that work send you a price.
             </span>
             <Link href="/jobs/new" className="press rounded-[10px] bg-[var(--ink)] px-3.5 py-2.5 text-center text-[13.5px] font-semibold text-[var(--card)] no-underline">
               Post a job
@@ -499,9 +497,8 @@ export default async function BrowsePage({
           </div>
         </aside>
 
-        {/* Grid */}
-        <div className="flex min-w-0 flex-1 flex-col gap-4 py-4 lg:gap-[18px] lg:py-0">
-          {/* phone chips */}
+        {/* Cards */}
+        <div className="flex min-w-0 flex-1 flex-col gap-5">
           <div className="rail flex gap-2 lg:hidden">
             <Link href="/" className={chip(!category)}>All</Link>
             {(categories ?? []).map((c) => (
@@ -511,13 +508,14 @@ export default async function BrowsePage({
             ))}
           </div>
 
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex flex-col gap-0.5">
-              <h2 className="font-display text-[15px] font-semibold lg:text-[22px] lg:font-extrabold">
-                {activeCategoryName ? `${activeCategoryName} near you` : "Pros near you"}
+          <div className="flex items-end justify-between gap-4">
+            <div className="flex flex-col gap-1">
+              <h2 className="font-display text-2xl font-black lg:text-[34px]">
+                {activeCategoryName ?? "Near you"}
+                {!activeCategoryName && !q ? ", cheapest first" : ""}
               </h2>
-              <span className="hidden text-[13.5px] text-[var(--ink-faint)] lg:block">
-                {pros.length} {pros.length === 1 ? "pro" : "pros"}
+              <span className="text-sm text-[var(--ink-faint)]">
+                {pros.length} {pros.length === 1 ? "trade" : "trades"}
                 {q ? ` matching "${q}"` : ""}
               </span>
             </div>
@@ -526,21 +524,14 @@ export default async function BrowsePage({
 
           {pros.length === 0 && (
             <p className="rounded-2xl border border-[var(--line)] bg-[var(--card)] p-5 text-sm text-[var(--ink-faint)]">
-              Nothing matches that.{" "}
-              <Link href="/" className="link">Clear the filters</Link>, or{" "}
-              <Link href="/jobs/new" className="link">post a job</Link> and let pros come to you.
+              Nothing matches that. <Link href="/" className="link">Clear the filters</Link>, or{" "}
+              <Link href="/jobs/new" className="link">post a job</Link> and let trades come to you.
             </p>
           )}
 
-          <div id="pro-grid" className="grid grid-cols-1 gap-4 lg:!grid-cols-2 lg:gap-[18px] xl:!grid-cols-3">
+          <div id="pro-grid" className="grid grid-cols-1 gap-5 lg:!grid-cols-2 xl:!grid-cols-3">
             {pros.map((pro: any, i: number) => {
-              const name = pro.business_name || pro.profiles?.full_name || "Unnamed pro";
-              const initials = name
-                .split(" ")
-                .slice(0, 2)
-                .map((w: string) => w[0])
-                .join("")
-                .toUpperCase();
+              const name = nameById[pro.id];
               const trades: string[] = (pro.pro_categories ?? []).map((pc: any) => pc.categories?.name).filter(Boolean);
               const rates: RateItem[] = pro.rate_items ?? [];
               const hourly = rates.find((r) => r.unit === "hourly");
@@ -557,10 +548,10 @@ export default async function BrowsePage({
                 <Link
                   key={pro.id}
                   href={`/pros/${pro.id}`}
-                  className="card rise flex flex-col overflow-hidden rounded-[17px] border border-[var(--line)] bg-[var(--card)] no-underline"
+                  className="card rise flex flex-col overflow-hidden rounded-[20px] border border-[var(--line)] bg-[var(--card)] no-underline"
                   style={{ animationDelay: `${0.05 * i}s` }}
                 >
-                  <div className="card-cover relative h-[150px] overflow-hidden bg-[var(--sand)] lg:h-[146px]">
+                  <div className="card-cover relative h-[190px] overflow-hidden bg-[var(--sand)] lg:h-[210px]">
                     {cover ? (
                       cover.kind === "video" ? (
                         <video src={mediaUrl(cover.storage_path)} className="shot h-full w-full object-cover" muted playsInline preload="metadata" />
@@ -574,108 +565,167 @@ export default async function BrowsePage({
                     )}
                     <SaveButton proId={pro.id} />
                     {cover?.job && (
-                      <span className="absolute left-2.5 top-2.5 rounded-md bg-[var(--card)] px-2 py-1 text-[10.5px] font-semibold">
+                      <span className="absolute left-3.5 top-3.5 rounded-full bg-[var(--card)] px-2.5 py-1.5 text-[11.5px] font-semibold">
                         {[cover.job.title, cover.job.neighborhood].filter(Boolean).join(", ")}
                       </span>
                     )}
-                     {hasVideo && (
-                      <span className="absolute bottom-2.5 right-2.5 rounded-md bg-[var(--ink)]/82 px-2 py-1 text-[10.5px] font-semibold text-[var(--card)]">
+                    {hasVideo && (
+                      <span className="absolute bottom-3.5 left-3.5 rounded-full bg-[var(--card)] px-2.5 py-1.5 text-[11.5px] font-semibold">
                         Video
                       </span>
                     )}
                     {pro.takes_projects && (
-                      <span className="absolute bottom-2.5 left-2.5 rounded-md bg-[var(--ink)] px-2 py-1 text-[10.5px] font-semibold text-[var(--card)]">
+                      <span className="absolute bottom-3.5 right-3.5 rounded-full bg-[var(--ink)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[var(--card)]">
                         Whole projects
                       </span>
                     )}
                   </div>
 
-                  <div className="flex gap-2.5 px-4 pt-3.5">
-                    <div className="font-display flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[10px] bg-[var(--sand)] text-sm font-extrabold text-[#6b5a3e]">
-                      {initials}
-                    </div>
-                    <div className="flex min-w-0 flex-col gap-0.5">
-                      <span className="card-name font-display text-[15.5px] font-extrabold text-[var(--ink)]">{name}</span>
-                      <span className="card-meta truncate text-xs text-[var(--ink-faint)]">
-                        {[trades.join(", "), pro.years_experience != null ? `${pro.years_experience} yrs` : null]
+                  <div className="flex flex-col gap-3.5 p-5">
+                    <div>
+                      <div className="card-name font-display text-xl font-bold leading-tight text-[var(--ink)]">
+                        {name}
+                      </div>
+                      <div className="card-meta mt-1 truncate text-[13.5px] text-[var(--ink-faint)]">
+                        {[trades.join(", "), pro.years_experience != null ? `${pro.years_experience} years` : null]
                           .filter(Boolean)
                           .join(" · ")}
-                      </span>
+                      </div>
                     </div>
-                  </div>
 
-                  {rows.length > 0 ? (
-                    <div className="card-rates mx-4 mt-3 overflow-hidden rounded-[10px] border border-[#e8e1d3]">
-                      {rows.map((r, n) => (
-                        <div
-                          key={r.id}
-                          className={`flex items-center justify-between gap-2 px-2.5 py-2 ${
-                            n < rows.length - 1 ? "border-b border-[var(--line-soft)]" : ""
-                          }`}
-                        >
-                          <span className="text-[12.5px] text-[var(--ink)]">{r.title}</span>
-                          <span className="text-[12.5px] font-semibold text-[var(--ink)]">{formatPrice(r)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="card-rates mx-4 mt-3 rounded-[10px] bg-[var(--paper)] px-2.5 py-2 text-[12.5px] text-[var(--ink-faint)]">
-                      No prices listed yet
-                    </p>
-                  )}
+                    {rows.length > 0 ? (
+                      <div className="card-rates flex flex-col gap-2.5 border-t border-[var(--line-soft)] pt-3">
+                        {rows.map((r) => (
+                          <div key={r.id} className="flex items-baseline justify-between gap-3">
+                            <span className="text-sm text-[var(--ink-soft)]">{r.title}</span>
+                            <span className="font-display text-[17px] font-bold">{formatPrice(r)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="card-rates border-t border-[var(--line-soft)] pt-3 text-sm text-[var(--ink-faint)]">
+                        No prices listed yet
+                      </p>
+                    )}
 
-                  <div className="card-foot mt-auto flex items-center justify-between gap-2.5 px-4 pb-3.5 pt-3">
-                    <span className={`text-[11.5px] font-semibold ${pro.license_verified ? "text-[var(--forest)]" : "text-[var(--ink-faint)]"}`}>
+                    <span className={`card-foot text-[13px] font-semibold ${pro.license_verified ? "text-[var(--forest)]" : "text-[var(--ink-faint)]"}`}>
                       {pro.license_verified
-                        ? `License verified${pro.license_state ? ` (${pro.license_state})` : ""}`
+                        ? `License verified${pro.license_state ? ` (${pro.license_state})` : ""}${pro.insured ? " · insured" : ""}`
                         : pro.insured
                         ? "Insured"
-                        : "Not verified yet"}
-                    </span>
-                    <span className="text-[12.5px] text-[var(--ink-faint)]">
-                      {pro.service_radius_miles} mi of {pro.service_zip}
+                        : `Within ${pro.service_radius_miles} mi of ${pro.service_zip}`}
                     </span>
                   </div>
                 </Link>
               );
             })}
           </div>
+        </div>
+      </section>
 
-          {/* phone post-a-job band */}
-          <div className="mt-2 flex flex-col gap-2.5 rounded-[18px] bg-[var(--sand)] p-[18px] lg:hidden">
-            <span className="font-display text-lg font-extrabold">Can't find the right fit?</span>
-            <span className="text-sm leading-relaxed text-[var(--ink-soft)]">
-              Describe the job once and pros who do that work send you a price.
-            </span>
-            <Link href="/jobs/new" className="press w-fit rounded-[10px] bg-[var(--ink)] px-4 py-2.5 text-sm font-semibold text-[var(--card)] no-underline">
-              Post a job
+      {/* ---------- Price wall ---------- */}
+      {wall.length > 0 && (
+        <section className="mx-auto flex max-w-[1440px] flex-col gap-5 px-5 pt-14 lg:px-16 lg:pt-16">
+          <div className="flex flex-col items-start justify-between gap-3 lg:flex-row lg:items-end lg:gap-10">
+            <div className="max-w-[640px]">
+              <h2 className="font-display mb-2 text-2xl font-black lg:text-[34px]">
+                Finished last month, and what it cost
+              </h2>
+              <p className="text-[15px] leading-relaxed text-[var(--ink-soft)] lg:text-base">
+                Every number is what a homeowner in this city actually paid. Not an estimate, not an average.
+              </p>
+            </div>
+            <Link href="/costs" className="shrink-0 text-[15px] font-semibold text-[var(--rust)] no-underline hover:underline">
+              What things cost
             </Link>
           </div>
+
+          <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
+            {wall.slice(0, 8).map((w) => (
+              <Link
+                key={w.key}
+                href="/costs"
+                className="card relative block h-[200px] overflow-hidden rounded-2xl bg-[var(--sand)] no-underline lg:h-[260px]"
+              >
+                {w.path &&
+                  (w.kind === "video" ? (
+                    <video src={mediaUrl(w.path)} className="h-full w-full object-cover" muted playsInline preload="metadata" />
+                  ) : (
+                    <img src={mediaUrl(w.path)} alt="" className="h-full w-full object-cover" />
+                  ))}
+                <span className="scrim absolute inset-0" />
+                <span className="absolute inset-x-4 bottom-4 flex flex-col gap-0.5">
+                  {w.price && (
+                    <span className="font-display text-xl font-black text-white lg:text-[26px]">{w.price}</span>
+                  )}
+                  <span className="text-[13.5px] font-semibold text-white">{w.job}</span>
+                  <span className="truncate text-[12.5px] text-[#d8cfbe]">{w.who}</span>
+                </span>
+                {w.hasVideo && (
+                  <span className="absolute right-3 top-3 rounded-full bg-[var(--card)]/94 px-2.5 py-1 text-[11.5px] font-bold text-[var(--ink)]">
+                    Video
+                  </span>
+                )}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ---------- The argument ---------- */}
+      <section className="mx-auto max-w-[1440px] px-5 pt-14 lg:px-16 lg:pt-16">
+        <div className="flex flex-col gap-8 rounded-[26px] bg-[var(--dark)] p-7 text-[var(--card)] lg:flex-row lg:gap-14 lg:p-14">
+          <div className="lg:w-[480px]">
+            <h2 className="font-display mb-4 text-[28px] font-black leading-[1.04] lg:text-[42px]">
+              Nobody on this page paid to be here.
+            </h2>
+            <p className="text-[15px] leading-relaxed text-[#c9c0ae] lg:text-[16.5px]">
+              Everywhere else sells your phone number to four contractors at once, then they race each other to
+              call you first. That's why your phone won't stop and why the price is never the real price.
+            </p>
+          </div>
+          <div className="flex flex-1 flex-col gap-5 lg:gap-[22px] lg:pt-1.5">
+            {[
+              ["01", "You browse, they don't chase", "You pick who to contact. One conversation, not five."],
+              ["02", "The price is on the card", "Confirmed on site, because no two houses are the same. But you start from a real number."],
+              ["03", "We only earn if the job happens", "A share of completed work. A wasted quote costs us too, which is rather the point."],
+            ].map(([n, title, body]) => (
+              <div key={n} className="flex gap-4">
+                <span className="font-display w-7 shrink-0 text-[17px] font-bold text-[#e0894f]">{n}</span>
+                <div>
+                  <div className="mb-1 text-[16px] font-semibold lg:text-[17px]">{title}</div>
+                  <div className="text-[14.5px] leading-relaxed text-[#c9c0ae]">{body}</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* ---------- Footer ---------- */}
-      <footer className="mt-10 bg-[var(--dark)] text-[#d8d2c4]">
-        <div className="mx-auto flex max-w-[1440px] flex-col justify-between gap-8 px-5 py-8 lg:flex-row lg:px-14">
-          <div className="flex max-w-[300px] flex-col gap-2">
-            <span className="font-display text-[19px] font-extrabold text-[#fbf8f1]">FairWork</span>
-            <span className="text-[13.5px] leading-relaxed">
+      <footer className="mt-14 bg-[var(--sand)]">
+        <div className="mx-auto flex max-w-[1440px] flex-col justify-between gap-8 px-5 py-10 lg:flex-row lg:px-16 lg:py-11">
+          <div className="max-w-[300px]">
+            <div className="font-display mb-2.5 text-[22px] font-black">FairWork</div>
+            <div className="text-sm leading-relaxed text-[var(--ink-faint)]">
               Prices from local trades, and the work they finished last month.
-            </span>
-          </div>
-          <div className="flex gap-16 text-[13.5px]">
-            <div className="flex flex-col gap-2">
-              <span className="font-semibold text-[#fbf8f1]">For homeowners</span>
-              <Link href="/" className="text-[#d8d2c4] no-underline hover:underline">Browse pros</Link>
-              <Link href="/costs" className="text-[#d8d2c4] no-underline hover:underline">Going rates</Link>
-              <Link href="/jobs/new" className="text-[#d8d2c4] no-underline hover:underline">Post a job</Link>
             </div>
-            <div className="flex flex-col gap-2">
-              <span className="font-semibold text-[#fbf8f1]">For pros</span>
-              <Link href="/signup" className="text-[#d8d2c4] no-underline hover:underline">List your work</Link>
-              <Link href="/pro/rates" className="text-[#d8d2c4] no-underline hover:underline">Your rate card</Link>
-              <Link href="/pro/jobs-available" className="text-[#d8d2c4] no-underline hover:underline">Find work</Link>
-              <Link href="/hiring" className="text-[#d8d2c4] no-underline hover:underline">Hiring board</Link>            </div>
+          </div>
+          <div className="flex gap-16 text-[14.5px] lg:gap-[72px]">
+            <div className="flex flex-col gap-2.5">
+              <span className="font-semibold">Homeowners</span>
+              <Link href="/" className="text-[var(--ink-faint)] no-underline hover:underline">Browse trades</Link>
+              <Link href="/help" className="text-[var(--ink-faint)] no-underline hover:underline">What do I need?</Link>
+              <Link href="/costs" className="text-[var(--ink-faint)] no-underline hover:underline">What things cost</Link>
+              <Link href="/jobs/new" className="text-[var(--ink-faint)] no-underline hover:underline">Post a job</Link>
+            </div>
+            <div className="flex flex-col gap-2.5">
+              <span className="font-semibold">Trades</span>
+              <Link href="/signup" className="text-[var(--ink-faint)] no-underline hover:underline">List your work</Link>
+              <Link href="/pro/jobs-available" className="text-[var(--ink-faint)] no-underline hover:underline">Find work</Link>
+              <Link href="/hiring" className="text-[var(--ink-faint)] no-underline hover:underline">Hiring board</Link>
+              <Link href="/pro/market" className="text-[var(--ink-faint)] no-underline hover:underline">Where my prices sit</Link>
+            </div>
           </div>
         </div>
       </footer>

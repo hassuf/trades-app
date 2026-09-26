@@ -1,18 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --paper: #f2eee4;
-  --card: #fbf8f1;
-  --ink: #16150f;
-  --ink-soft: #4a4740;
-  --ink-faint: #5c584f;
-  --line: #e0d8c8;
-  --line-soft: #efe9dc;
-  --rust: #a33508;
-  --rust-dark: #7c2706;
-  --forest: #1f4f35;
-  --dark: #22201a;
-  --sand: #e6dfcf;
+  --paper: #f7f3ea;
+  --card: #fffdf8;
+  --ink: #1a1814;
+  --ink-soft: #494438;
+  --ink-faint: #6b6455;
+  --line: #e3d9c6;
+  --line-soft: #eee6d6;
+  --rust: #a8390c;
+  --rust-dark: #7e2a08;
+  --forest: #3c5230;
+  --dark: #1a1814;
+  --sand: #efe8da;
+  --tint: #f7f1e4;
 }
 
 body {
@@ -22,8 +23,8 @@ body {
 }
 
 .font-display {
-  font-family: var(--font-display), system-ui, sans-serif;
-  letter-spacing: -0.02em;
+  font-family: var(--font-display), Georgia, serif;
+  letter-spacing: -0.03em;
 }
 
 /* ---------- motion ---------- */
@@ -45,12 +46,12 @@ body {
 .pop  { animation: popIn 0.34s cubic-bezier(0.3, 0.9, 0.3, 1) both; }
 
 .card {
-  transition: transform 0.22s cubic-bezier(0.3, 0.8, 0.25, 1), box-shadow 0.22s ease,
-    border-color 0.22s ease;
+  transition: transform 0.25s cubic-bezier(0.3, 0.8, 0.25, 1), box-shadow 0.25s ease,
+    border-color 0.25s ease;
 }
 .card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 22px rgba(34, 32, 26, 0.14);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 34px rgba(26, 24, 20, 0.16);
   border-color: #cfc4ae;
 }
 .card:active { transform: translateY(0) scale(0.99); }
@@ -64,9 +65,10 @@ body {
 .press:active { transform: scale(0.96); }
 
 .chip {
-  transition: background 0.24s ease, color 0.24s ease, border-color 0.24s ease, transform 0.18s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
 }
-.chip:active { transform: scale(0.95); }
+.chip:hover { background: var(--card); border-color: var(--ink); transform: translateY(-2px); }
+.chip:active { transform: scale(0.96); }
 
 /* horizontal swipe rails */
 .rail {
@@ -80,20 +82,44 @@ body {
 
 /* loading shimmer */
 .skel {
-  background: linear-gradient(90deg, #e6dfcf 0%, #f2eee4 50%, #e6dfcf 100%);
+  background: linear-gradient(90deg, #efe8da 0%, #f7f3ea 50%, #efe8da 100%);
   background-size: 220px 100%;
   animation: sweep 1.4s linear infinite;
 }
 
 /* sliding panels and sheets */
-.panel { transition: transform 0.42s cubic-bezier(0.3, 0.8, 0.25, 1), opacity 0.3s ease; }
+.panel-slide { transition: transform 0.42s cubic-bezier(0.3, 0.8, 0.25, 1), opacity 0.3s ease; }
 .sheet { transition: transform 0.38s cubic-bezier(0.25, 0.85, 0.25, 1); }
 .veil  { transition: opacity 0.3s ease, visibility 0.3s ease; }
 
+/* the price gradient over a photo */
+.scrim {
+  background: linear-gradient(to top, rgba(26, 24, 20, 0.86) 0%, rgba(26, 24, 20, 0) 54%);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .rise, .pop, .skel { animation: none; }
-  .card, .press, .chip, .shot, .panel, .sheet, .veil { transition: none; }
+  .card, .press, .chip, .shot, .panel-slide, .sheet, .veil { transition: none; }
 }
+
+/* ---------- page transitions ---------- */
+@view-transition { navigation: auto; }
+
+@keyframes slide-from-right { from { transform: translateX(100%); } }
+@keyframes slide-out-left { to { transform: translateX(-14%); opacity: 0.35; } }
+
+::view-transition-old(root) {
+  animation: 320ms cubic-bezier(0.3, 0.8, 0.25, 1) both slide-out-left;
+}
+::view-transition-new(root) {
+  animation: 380ms cubic-bezier(0.3, 0.8, 0.25, 1) both slide-from-right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+}
+
+html, body { overflow-x: hidden; max-width: 100%; }
 
 /* ---------- shared pieces ---------- */
 .page {
@@ -106,28 +132,29 @@ body {
 }
 
 .h1 {
-  font-family: var(--font-display), system-ui, sans-serif;
-  font-size: 1.75rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: -0.035em;
+  line-height: 1.04;
 }
 
 .h2 {
-  font-family: var(--font-display), system-ui, sans-serif;
-  font-size: 1.0625rem;
-  font-weight: 600;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.1875rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
-.lede { font-size: 0.9375rem; line-height: 1.5; color: var(--ink-soft); }
+.lede { font-size: 0.9375rem; line-height: 1.55; color: var(--ink-soft); }
 
 .field { display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.875rem; font-weight: 600; }
-.hint  { font-size: 0.75rem; font-weight: 400; color: var(--ink-faint); }
+.hint  { font-size: 0.8125rem; font-weight: 400; color: var(--ink-faint); }
 
 .input {
   height: 3rem;
   width: 100%;
-  border: 1px solid #ddd4c2;
+  border: 1px solid var(--line);
   border-radius: 0.75rem;
   background: #fff;
   padding: 0 0.75rem;
@@ -140,14 +167,14 @@ body {
 }
 .input:focus {
   border-color: var(--rust);
-  box-shadow: 0 0 0 3px rgba(163, 53, 8, 0.15);
+  box-shadow: 0 0 0 3px rgba(168, 57, 12, 0.15);
 }
 
 .area {
   width: 100%;
   box-sizing: border-box;
   resize: none;
-  border: 1px solid #ddd4c2;
+  border: 1px solid var(--line);
   border-radius: 0.75rem;
   background: #fff;
   padding: 0.75rem;
@@ -160,7 +187,7 @@ body {
 }
 .area:focus {
   border-color: var(--rust);
-  box-shadow: 0 0 0 3px rgba(163, 53, 8, 0.15);
+  box-shadow: 0 0 0 3px rgba(168, 57, 12, 0.15);
 }
 
 .btn {
@@ -181,11 +208,7 @@ body {
 
 .btn-dark { background: var(--ink); color: var(--card); }
 
-.btn-outline {
-  background: var(--card);
-  color: var(--ink);
-  border: 1px solid var(--ink);
-}
+.btn-outline { background: var(--card); color: var(--ink); border: 1px solid var(--ink); }
 
 .btn-sm { height: 2.625rem; padding-inline: 1rem; font-size: 0.875rem; }
 
@@ -209,8 +232,8 @@ body {
 .pill {
   height: 2.5rem;
   flex-shrink: 0;
-  border-radius: 1.25rem;
-  border: 1px solid #ddd4c2;
+  border-radius: 100px;
+  border: 1px solid var(--line);
   background: var(--card);
   padding-inline: 1rem;
   font-family: inherit;
@@ -218,62 +241,22 @@ body {
   font-weight: 500;
   color: var(--ink);
   cursor: pointer;
-  transition: background 0.24s ease, color 0.24s ease, border-color 0.24s ease, transform 0.18s ease;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.18s ease;
 }
 .pill:active { transform: scale(0.95); }
 .pill-on { border-color: var(--ink); background: var(--ink); color: var(--card); }
 
 .error {
   border-radius: 0.5rem;
-  background: #fbe9e2;
+  background: #f8e6dd;
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
-  color: #8a2e08;
+  color: #7e2a08;
 }
 
 .link { font-size: 0.875rem; font-weight: 600; color: var(--rust); text-decoration: underline; }
 
-/* ---------- page transitions ---------- */
-@view-transition { navigation: auto; }
-
-@keyframes slide-from-right { from { transform: translateX(100%); } }
-@keyframes slide-out-left {
-  to { transform: translateX(-14%); opacity: 0.35; }
-}
-
-::view-transition-old(root) {
-  animation: 320ms cubic-bezier(0.3, 0.8, 0.25, 1) both slide-out-left;
-}
-::view-transition-new(root) {
-  animation: 380ms cubic-bezier(0.3, 0.8, 0.25, 1) both slide-from-right;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
-}
-html, body { overflow-x: hidden; max-width: 100%; }
-/* ---------- hero backdrop ---------- */
-/* A faint blueprint grid with a diagonal rule, drawn in CSS so there's no image to load. */
-.hero-pattern {
-  position: relative;
-  isolation: isolate;
-}
-.hero-pattern::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  opacity: 0.5;
-  background-image:
-    repeating-linear-gradient(0deg, rgba(251, 248, 241, 0.05) 0 1px, transparent 1px 48px),
-    repeating-linear-gradient(90deg, rgba(251, 248, 241, 0.05) 0 1px, transparent 1px 48px),
-    repeating-linear-gradient(135deg, rgba(163, 53, 8, 0.12) 0 2px, transparent 2px 22px);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .hero-pattern::before { transition: opacity 0.4s ease; }
-}
-
-/* ---------- compact cards in phone grid view ---------- */
+/* phone grid view */
 .compact .card-cover { height: 104px; }
 .compact .card-rates { display: none; }
 .compact .card-name { font-size: 14px; }
