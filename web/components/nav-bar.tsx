@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import MenuDrawer from "@/components/menu-drawer";
 import SideSwitch from "@/components/side-switch";
@@ -13,11 +13,13 @@ export default function NavBar() {
   const supabase = createClient();
   const router = useRouter();
   const pathname = usePathname();
+  const params = useSearchParams();
 
   const [userId, setUserId] = useState<string | null>(null);
   const [isPro, setIsPro] = useState(false);
   const [initials, setInitials] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
+  const [side, setSide] = useState<"homeowner" | "trade">("homeowner");
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -30,10 +32,13 @@ export default function NavBar() {
       setCategories(cats ?? []);
 
       const { data: auth } = await supabase.auth.getUser();
+      let pro = false;
+
       if (auth.user) {
         setUserId(auth.user.id);
-        const { data: pro } = await supabase.from("pros").select("id").eq("id", auth.user.id).maybeSingle();
-        setIsPro(!!pro);
+        const { data: proRow } = await supabase.from("pros").select("id").eq("id", auth.user.id).maybeSingle();
+        pro = !!proRow;
+        setIsPro(pro);
         const { data: profile } = await supabase.from("profiles").select("full_name").eq("id", auth.user.id).maybeSingle();
         if (profile?.full_name) {
           setInitials(
@@ -49,10 +54,20 @@ export default function NavBar() {
         setUserId(null);
         setIsPro(false);
       }
+
+      // The chooser wins; otherwise fall back to what their account is.
+      let chosen: "homeowner" | "trade" | null = null;
+      try {
+        const saved = localStorage.getItem("fw-side");
+        if (saved === "homeowner" || saved === "trade") chosen = saved;
+      } catch {}
+      if (params.get("view") === "trade") chosen = "trade";
+      setSide(chosen ?? (pro ? "trade" : "homeowner"));
+
       setReady(true);
     }
     load();
-  }, [pathname]);
+  }, [pathname, params]);
 
   async function logOut() {
     await supabase.auth.signOut();
@@ -63,10 +78,12 @@ export default function NavBar() {
     router.refresh();
   }
 
-  const tabs = isPro
+  const isTrade = side === "trade";
+
+  const tabs = isTrade
     ? [
-        { href: "/", label: "Browse" },
-        { href: "/pro/jobs-available", label: "Find work" },
+        { href: "/?view=trade", label: "Work" },
+        { href: "/hiring", label: "Hiring" },
         { href: "/messages", label: "Messages" },
       ]
     : [
@@ -75,7 +92,10 @@ export default function NavBar() {
         { href: "/messages", label: "Messages" },
       ];
 
-  const active = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  const active = (href: string) => {
+    const path = href.split("?")[0];
+    return path === "/" ? pathname === "/" : pathname.startsWith(path);
+  };
   const activeIndex = tabs.findIndex((t) => active(t.href));
 
   const navLink = "text-[15px] font-medium text-[var(--ink)] no-underline hover:text-[var(--rust)]";
@@ -87,25 +107,43 @@ export default function NavBar() {
         <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-4 py-3 lg:px-14 lg:py-4">
           <div className="flex items-center gap-3 lg:gap-10">
             <div className="lg:hidden">
-              <MenuDrawer categories={categories} />
+              <MenuDrawer categories={categories} side={side} />
             </div>
 
-            <Link href="/" className="font-display text-xl font-extrabold text-[var(--ink)] no-underline lg:text-[23px]">
+            <Link
+              href={isTrade ? "/?view=trade" : "/"}
+              className="font-display text-xl font-extrabold text-[var(--ink)] no-underline lg:text-[23px]"
+            >
               FairWork
             </Link>
 
+            {/* Sections differ by side */}
             <div className="hidden items-center gap-7 lg:flex">
-              <Link href="/" className={navLink}>Browse trades</Link>
-              <Link href="/costs" className={navLink}>Going rates</Link>
-              {ready && isPro && <Link href="/pro/jobs-available" className={navLink}>Find work</Link>}
-              <Link href="/hiring" className={navLink}>Hiring board</Link>            </div>
+              {ready && isTrade && (
+                <>
+                  <Link href="/pro/jobs-available" className={navLink}>Find work</Link>
+                  <Link href="/hiring" className={navLink}>Hiring board</Link>
+                  <Link href="/costs" className={navLink}>Going rates</Link>
+                </>
+              )}
+              {ready && !isTrade && (
+                <>
+                  <Link href="/" className={navLink}>Browse trades</Link>
+                  <Link href="/costs" className={navLink}>Going rates</Link>
+                  <Link href="/jobs/new" className={navLink}>Post a job</Link>
+                </>
+              )}
+            </div>
           </div>
 
-             <div className="flex items-center gap-4 lg:gap-6">
+          <div className="flex items-center gap-4 lg:gap-6">
             <SideSwitch />
+
             {ready && !userId && (
               <>
-                <Link href="/signup" className={`hidden lg:inline ${accentLink}`}>List your work</Link>
+                <Link href="/signup" className={`hidden lg:inline ${accentLink}`}>
+                  {isTrade ? "List your work" : "Sign up free"}
+                </Link>
                 <Link href="/login" className={`hidden sm:inline ${navLink}`}>Log in</Link>
                 <Link
                   href="/signup"
@@ -119,20 +157,28 @@ export default function NavBar() {
             {ready && userId && (
               <>
                 <Link href="/messages" className={`hidden lg:inline ${navLink}`}>Messages</Link>
-                <Link href={isPro ? "/pro/jobs" : "/jobs"} className={`hidden lg:inline ${navLink}`}>
-                  {isPro ? "My work" : "My jobs"}
-                </Link>
-                {!isPro && (
-                  <Link
-                    href="/jobs/new"
-                    className="press hidden rounded-[11px] bg-[var(--rust)] px-[18px] py-[11px] text-[15px] font-semibold text-white no-underline lg:inline"
-                  >
-                    Post a job
-                  </Link>
+
+                {isTrade ? (
+                  <>
+                    {isPro && (
+                      <Link href={`/pros/${userId}`} className={`hidden lg:inline ${accentLink}`}>My profile</Link>
+                    )}
+                    {!isPro && (
+                      <Link href="/pro/setup" className={`hidden lg:inline ${accentLink}`}>Set up your listing</Link>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <Link href="/jobs" className={`hidden lg:inline ${navLink}`}>My jobs</Link>
+                    <Link
+                      href="/jobs/new"
+                      className="press hidden rounded-[11px] bg-[var(--rust)] px-[18px] py-[11px] text-[15px] font-semibold text-white no-underline lg:inline"
+                    >
+                      Post a job
+                    </Link>
+                  </>
                 )}
-                {isPro && userId && (
-                  <Link href={`/pros/${userId}`} className={`hidden lg:inline ${accentLink}`}>My profile</Link>
-                )}
+
                 <button type="button" onClick={logOut} className="press hidden text-[15px] font-medium text-[var(--ink-soft)] underline lg:inline">
                   Log out
                 </button>

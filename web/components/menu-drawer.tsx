@@ -7,7 +7,13 @@ import { createClient } from "@/lib/supabase/client";
 
 type Category = { id: number; slug: string; name: string };
 
-export default function MenuDrawer({ categories }: { categories: Category[] }) {
+export default function MenuDrawer({
+  categories,
+  side = "homeowner",
+}: {
+  categories: Category[];
+  side?: "homeowner" | "trade";
+}) {
   const supabase = createClient();
   const router = useRouter();
   const pathname = usePathname();
@@ -34,7 +40,6 @@ export default function MenuDrawer({ categories }: { categories: Category[] }) {
     load();
   }, [pathname]);
 
-  // Close on route change and on Escape.
   useEffect(() => setOpen(false), [pathname]);
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -54,6 +59,15 @@ export default function MenuDrawer({ categories }: { categories: Category[] }) {
     router.refresh();
   }
 
+  function switchSide() {
+    const next = side === "trade" ? "homeowner" : "trade";
+    try {
+      localStorage.setItem("fw-side", next);
+    } catch {}
+    window.location.href = next === "trade" ? "/?view=trade" : "/";
+  }
+
+  const isTrade = side === "trade";
   const item =
     "flex items-center justify-between rounded-xl px-3 py-3 text-[15px] font-medium text-[var(--ink)] no-underline hover:bg-[var(--sand)]";
   const sectionLabel = "px-3 pb-1 pt-4 text-[11.5px] font-semibold uppercase tracking-wide text-[var(--ink-faint)]";
@@ -72,7 +86,6 @@ export default function MenuDrawer({ categories }: { categories: Category[] }) {
         </svg>
       </button>
 
-      {/* Backdrop */}
       <button
         type="button"
         aria-label="Close menu"
@@ -80,12 +93,12 @@ export default function MenuDrawer({ categories }: { categories: Category[] }) {
         className={`veil fixed inset-0 z-40 bg-[var(--ink)]/45 ${open ? "visible opacity-100" : "invisible opacity-0"}`}
       />
 
-      {/* Drawer */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Menu"
-        className={`panel fixed left-0 top-0 z-50 flex h-dvh w-[86%] max-w-[340px] flex-col bg-[var(--paper)] shadow-[8px_0_30px_rgba(34,32,26,0.18)] ${          open ? "translate-x-0" : "-translate-x-full"
+        className={`panel fixed left-0 top-0 z-50 flex h-dvh w-[86%] max-w-[340px] flex-col bg-[var(--paper)] shadow-[8px_0_30px_rgba(34,32,26,0.18)] ${
+          open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex items-center justify-between border-b border-[var(--line)] px-4 py-3.5">
@@ -109,46 +122,58 @@ export default function MenuDrawer({ categories }: { categories: Category[] }) {
             </div>
           )}
 
-          <div className={sectionLabel}>Find work done</div>
-          <Link href="/" className={item}>Browse pros</Link>
-          <Link href="/jobs/new" className={item}>Post a job</Link>
-          <Link href="/costs" className={item}>Going rates</Link>
-          {userId && <Link href="/jobs" className={item}>My jobs</Link>}
-
-          <div className={sectionLabel}>For pros</div>
-          {isPro ? (
+          {isTrade ? (
             <>
-              <Link href="/pro/jobs-available" className={item}>Find work</Link>
-              <Link href={`/pros/${userId}`} className={item}>My profile</Link>
-              <Link href="/pro/rates" className={item}>My rate card</Link>
-              <Link href="/pro/jobs" className={item}>My past jobs</Link>
-              <Link href="/pro/projects" className={item}>My projects</Link>
-              <Link href="/pro/setup" className={item}>Business details</Link>
+              <div className={sectionLabel}>Find work</div>
+              <Link href="/pro/jobs-available" className={item}>Open jobs</Link>
+              <Link href="/hiring" className={item}>Hiring board</Link>
+              <Link href="/costs" className={item}>Going rates</Link>
+
+              <div className={sectionLabel}>Your listing</div>
+              {isPro ? (
+                <>
+                  <Link href={`/pros/${userId}`} className={item}>My profile</Link>
+                  <Link href="/pro/rates" className={item}>My rate card</Link>
+                  <Link href="/pro/jobs" className={item}>My past jobs</Link>
+                  <Link href="/pro/projects" className={item}>My projects</Link>
+                  <Link href="/pro/setup" className={item}>Business details</Link>
+                </>
+              ) : (
+                <Link href="/signup" className={item}>List your work</Link>
+              )}
+
+              <div className={sectionLabel}>Hiring someone?</div>
+              <Link href="/hiring/new" className={item}>Post a role</Link>
+              {userId && <Link href="/hiring/mine" className={item}>Roles you posted</Link>}
             </>
           ) : (
-            <Link href="/signup" className={item}>List your work</Link>
+            <>
+              <div className={sectionLabel}>Find someone</div>
+              <Link href="/" className={item}>Browse trades</Link>
+              <Link href="/costs" className={item}>Going rates</Link>
+
+              <div className={sectionLabel}>Your jobs</div>
+              <Link href="/jobs/new" className={item}>Post a job</Link>
+              {userId && <Link href="/jobs" className={item}>My jobs</Link>}
+
+              <div className={sectionLabel}>Trades</div>
+              {categories.slice(0, 8).map((c) => (
+                <Link key={c.id} href={`/?category=${c.slug}`} className={item}>
+                  {c.name}
+                </Link>
+              ))}
+            </>
           )}
 
-          <div className={sectionLabel}>Hiring board</div>
-          <Link href="/hiring" className={item}>Looking for work?</Link>
-          <Link href="/hiring/new" className={item}>Post a role</Link>
-          {userId && <Link href="/hiring/mine" className={item}>Roles you posted</Link>}
-
-          <div className={sectionLabel}>Trades</div>
-          {categories.map((c) => (
-            <Link key={c.id} href={`/?category=${c.slug}`} className={item}>
-              {c.name}
-            </Link>
-          ))}
-
           <div className="mt-4 border-t border-[var(--line)] pt-3">
+            {userId && <Link href="/messages" className={item}>Messages</Link>}
+            <button type="button" onClick={switchSide} className={`${item} w-full text-left`}>
+              {isTrade ? "Switch to homeowner view" : "Switch to trade view"}
+            </button>
             {userId ? (
-              <>
-                <Link href="/messages" className={item}>Messages</Link>
-                <button type="button" onClick={logOut} className={`${item} w-full text-left`}>
-                  Log out
-                </button>
-              </>
+              <button type="button" onClick={logOut} className={`${item} w-full text-left`}>
+                Log out
+              </button>
             ) : (
               <>
                 <Link href="/login" className={item}>Log in</Link>
