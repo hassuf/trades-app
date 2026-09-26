@@ -70,14 +70,11 @@ export default function MessageButton({
       ? `${base} border border-[var(--ink)] bg-[var(--card)] px-5 text-[var(--ink)]`
       : "press text-sm font-semibold text-[var(--rust)] underline disabled:opacity-60";
 
+  const width = grow ? "flex-[2]" : variant === "plain" ? "" : "flex-1";
+
   return (
     <>
-      <button
-        type="button"
-        onClick={open}
-        disabled={busy}
-        className={`${styles} ${grow ? "flex-[2]" : variant === "plain" ? "" : "flex-1"}`}
-      >
+      <button type="button" onClick={open} disabled={busy} className={`${styles} ${width}`}>
         {busy ? "Opening…" : label}
       </button>
       {note && <span className="self-center text-xs text-[var(--ink-faint)]">{note}</span>}
