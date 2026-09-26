@@ -30,6 +30,7 @@ export default function OwnerLinks({ proId }: { proId: string }) {
       <div className="flex flex-wrap gap-x-5 gap-y-2">
         <Link href="/pro/rates" className={link}>Edit rate card</Link>
         <Link href="/pro/jobs" className={link}>Edit past jobs</Link>
+        <Link href="/pro/projects" className={link}>Edit projects</Link>
         <Link href="/pro/setup" className={link}>Edit business details</Link>
         <button type="button" onClick={logOut} className="text-sm font-medium text-[#4A4740] underline">
           Log out

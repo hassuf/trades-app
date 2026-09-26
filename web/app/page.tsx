@@ -166,7 +166,7 @@ export default async function BrowsePage({
     .from("pros")
     .select(
       `id, business_name, bio, service_zip, service_radius_miles, years_experience,
-       license_verified, license_state, insured,
+       license_verified, license_state, insured, takes_projects,
        profiles!pros_id_fkey(full_name),
        pro_categories(categories(slug, name)),
        rate_items(id, title, description, unit, size_tier, price_min_cents, price_max_cents, category_id),
@@ -536,9 +536,14 @@ export default async function BrowsePage({
                         {[cover.job.title, cover.job.neighborhood].filter(Boolean).join(", ")}
                       </span>
                     )}
-                    {hasVideo && (
+                     {hasVideo && (
                       <span className="absolute bottom-2.5 right-2.5 rounded-md bg-[var(--ink)]/82 px-2 py-1 text-[10.5px] font-semibold text-[var(--card)]">
                         Video
+                      </span>
+                    )}
+                    {pro.takes_projects && (
+                      <span className="absolute bottom-2.5 left-2.5 rounded-md bg-[var(--ink)] px-2 py-1 text-[10.5px] font-semibold text-[var(--card)]">
+                        Whole projects
                       </span>
                     )}
                   </div>

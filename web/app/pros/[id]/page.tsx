@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { formatPrice, mediaUrl, monthLabel, tierLabel, type RateItem } from "@/lib/format";
 import BookingSheet from "@/components/booking-sheet";
+import ProjectList, { projectRanges, type Project } from "@/components/project-list";
 import OwnerLinks from "@/components/owner-links";
 
 type Media = { id: string; kind: "photo" | "video"; storage_path: string; sort_order: number };
@@ -40,6 +41,20 @@ export default async function ProProfilePage({ params }: { params: Promise<{ id:
     .order("completed_on", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
   const jobs = (jobsData as any[]) ?? [];
+
+  // Whole-project work, for contractors who take it on.
+  const { data: projectData } = pro.takes_projects
+    ? await supabase
+        .from("gc_projects")
+        .select(
+          "id, title, scope, neighborhood, completed_on, final_cost_cents, duration_weeks, included, categories(name), gc_project_media(id, kind, storage_path, sort_order)"
+        )
+        .eq("pro_id", id)
+        .order("completed_on", { ascending: false, nullsFirst: false })
+        .order("created_at", { ascending: false })
+    : { data: [] };
+  const projects = (projectData as unknown as Project[]) ?? [];
+  const ranges = projectRanges(projects);
 
   const name: string = pro.business_name || pro.profiles?.full_name || "Unnamed pro";
   const initials = name
@@ -170,6 +185,11 @@ export default async function ProProfilePage({ params }: { params: Promise<{ id:
                       <span className="font-medium text-[var(--ink-faint)]">License pending verification</span>
                     ))}
                   {pro.insured && <span className="text-[var(--forest)]">Carries liability insurance</span>}
+                  {pro.takes_projects && (
+                    <span className="rounded-full bg-[var(--ink)] px-2.5 py-1 text-[11.5px] font-semibold text-[var(--card)]">
+                      Takes whole projects
+                    </span>
+                  )}
                 </div>
               </div>
             </section>
@@ -190,6 +210,67 @@ export default async function ProProfilePage({ params }: { params: Promise<{ id:
                 {pro.bio}
               </p>
             )}
+                    {/* Whole projects */}
+        {pro.takes_projects && (
+          <>
+            <section className="overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--card)] lg:rounded-[18px]">
+              <div className="flex items-baseline justify-between gap-3 border-b border-[#e8e1d3] px-4 py-3 lg:px-[22px] lg:py-4">
+                <h2 className="font-display text-sm font-semibold lg:text-xl lg:font-extrabold">
+                  What projects like yours have cost
+                </h2>
+                <span className="text-[11.5px] text-[var(--ink-faint)] lg:text-[12.5px]">
+                  From finished jobs, not estimates
+                </span>
+              </div>
+
+              {ranges.length === 0 ? (
+                <p className="px-4 py-4 text-sm text-[var(--ink-faint)]">No finished projects posted yet.</p>
+              ) : (
+                ranges.map((r, i) => (
+                  <div
+                    key={r.name}
+                    className={`flex items-center justify-between gap-4 px-4 py-3 lg:px-[22px] lg:py-[15px] ${
+                      i < ranges.length - 1 ? "border-b border-[var(--line-soft)]" : ""
+                    }`}
+                  >
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-sm font-medium lg:text-base lg:font-semibold">{r.name}</span>
+                      <span className="text-[11.5px] text-[var(--ink-faint)] lg:text-[13px]">
+                        {r.count} finished{r.weeks ? `, ${r.weeks}` : ""}
+                      </span>
+                    </div>
+                    <span className="shrink-0 text-sm font-semibold lg:text-[17px]">{r.cost ?? "Cost not listed"}</span>
+                  </div>
+                ))
+              )}
+
+              {(pro.crew_size || pro.subs_out) && (
+                <div className="border-t border-[#e8e1d3] bg-[var(--paper)] px-4 py-3 text-[13px] text-[var(--ink-soft)] lg:px-[22px]">
+                  {[
+                    pro.crew_size ? `Crew of ${pro.crew_size}` : null,
+                    pro.subs_out ? `Subs out: ${pro.subs_out}` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </div>
+              )}
+            </section>
+
+            {pro.project_blurb && (
+              <section className="flex flex-col gap-2">
+                <h2 className="font-display text-[15px] font-semibold lg:text-xl lg:font-extrabold">How they work</h2>
+                <p className="whitespace-pre-line text-[15px] leading-relaxed lg:text-base">{pro.project_blurb}</p>
+              </section>
+            )}
+
+            <section className="flex flex-col gap-3.5">
+              <h2 className="font-display text-[15px] font-semibold lg:text-xl lg:font-extrabold">
+                Finished projects
+              </h2>
+              <ProjectList projects={projects} />
+            </section>
+          </>
+        )}
 
             {/* Rate card */}
             <section className="overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--card)] lg:rounded-[18px]">
@@ -202,7 +283,11 @@ export default async function ProProfilePage({ params }: { params: Promise<{ id:
                 )}
               </div>
               {rateItems.length === 0 ? (
-                <p className="px-4 py-4 text-sm text-[var(--ink-faint)]">No prices listed yet.</p>
+                <p className="px-4 py-4 text-sm text-[var(--ink-faint)]">
+                  {pro.takes_projects
+                    ? "No fixed prices. Every project gets quoted after a walkthrough."
+                    : "No prices listed yet."}
+                </p>
               ) : (
                 rateItems.map((item, i) => (
                   <div

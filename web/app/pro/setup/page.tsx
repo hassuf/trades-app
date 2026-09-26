@@ -22,7 +22,10 @@ export default function ProSetupPage() {
   const [licenseNumber, setLicenseNumber] = useState("");
   const [licenseState, setLicenseState] = useState("");
   const [insured, setInsured] = useState(false);
-
+  const [takesProjects, setTakesProjects] = useState(false);
+  const [projectBlurb, setProjectBlurb] = useState("");
+  const [crewSize, setCrewSize] = useState("");
+  const [subsOut, setSubsOut] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -48,7 +51,10 @@ export default function ProSetupPage() {
         setLicenseNumber(pro.license_number ?? "");
         setLicenseState(pro.license_state ?? "");
         setInsured(pro.insured ?? false);
-      }
+        setTakesProjects(pro.takes_projects ?? false);
+        setProjectBlurb(pro.project_blurb ?? "");
+        setCrewSize(pro.crew_size?.toString() ?? "");
+        setSubsOut(pro.subs_out ?? "");      }
 
       const { data: mine } = await supabase.from("pro_categories").select("category_id").eq("pro_id", auth.user.id);
       setPicked((mine ?? []).map((m) => m.category_id));
@@ -80,6 +86,10 @@ export default function ProSetupPage() {
       license_number: licenseNumber || null,
       license_state: licenseState || null,
       insured,
+      takes_projects: takesProjects,
+      project_blurb: takesProjects ? projectBlurb || null : null,
+      crew_size: takesProjects && crewSize ? Number(crewSize) : null,
+      subs_out: takesProjects ? subsOut || null : null,
     });
     if (proError) {
       setSaving(false);
@@ -192,6 +202,69 @@ export default function ProSetupPage() {
           />
           I carry liability insurance
         </label>
+
+        {/* Whole projects */}
+        <div className="flex flex-col gap-4 rounded-2xl border border-[var(--line)] bg-[var(--card)] p-4">
+          <label className="flex items-start gap-3 text-[15px]">
+            <input
+              type="checkbox"
+              checked={takesProjects}
+              onChange={(e) => setTakesProjects(e.target.checked)}
+              className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--rust)]"
+            />
+            <span className="flex flex-col gap-1">
+              <span className="font-semibold">I take on whole projects</span>
+              <span className="hint">
+                Kitchens, bathrooms, additions, gut renovations. You manage the job and bring in the other
+                trades. Your profile will lead with past projects and what they actually cost, instead of a rate
+                card.
+              </span>
+            </span>
+          </label>
+
+          {takesProjects && (
+            <>
+              <label className="field">
+                How you work
+                <textarea
+                  className="area"
+                  rows={3}
+                  value={projectBlurb}
+                  onChange={(e) => setProjectBlurb(e.target.value)}
+                  placeholder="How you run a job: how you quote, how often you're on site, who the homeowner deals with day to day."
+                />
+              </label>
+
+              <div className="grid grid-cols-2 gap-3">
+                <label className="field">
+                  Crew size
+                  <input
+                    className="input"
+                    type="number"
+                    min={1}
+                    value={crewSize}
+                    onChange={(e) => setCrewSize(e.target.value)}
+                    placeholder="e.g. 4"
+                  />
+                </label>
+                <label className="field">
+                  Trades you sub out
+                  <input
+                    className="input"
+                    value={subsOut}
+                    onChange={(e) => setSubsOut(e.target.value)}
+                    placeholder="e.g. Electrical, HVAC"
+                  />
+                </label>
+              </div>
+
+              <p className="rounded-xl bg-[var(--paper)] p-3 text-[13px] leading-relaxed text-[var(--ink-soft)]">
+                Project listings need a verified license and proof of insurance. We check both by hand. There's
+                no fee, and you still only pay a share when a job completes.
+              </p>
+            </>
+          )}
+        </div>
 
         {error && <p className="error">{error}</p>}
 
